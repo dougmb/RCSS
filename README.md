@@ -21,7 +21,7 @@ Sistema automatizado para gestão de backups multi-projeto integrando armazename
 - **Detecção Automática:** Identifica subpastas em `/opt/backups/` como projetos independentes.
 - **Upload Eficiente:** Usa `rclone copy --update` para economizar banda.
 - **Faxina Local:** Remove arquivos do servidor local que excederam o `RETENTION_DAYS` (somente após upload bem-sucedido).
-- **Segurança:** Ignora pastas administrativas (scripts, logs, etc.).
+- **Segurança:** Ignora pastas ocultas e diretórios administrativos (configurável via `IGNORED_FOLDERS`).
 
 ### 2. `cleanRemoteBackups.sh` (Manutenção da Nuvem)
 
@@ -75,6 +75,7 @@ Edite o arquivo `backup.env` na mesma pasta do script para definir:
 - `RETENTION_DAYS`: Retenção no servidor local.
 - `REMOTE_RETENTION_DAYS`: Retenção na nuvem.
 - `REMOTE_CLEANUP_SAFETY_DAYS`: Janela de segurança para limpeza remota.
+- `IGNORED_FOLDERS`: Lista de pastas (separadas por espaço) a serem ignoradas na raiz de backups.
 
 ---
 
@@ -129,4 +130,4 @@ Adicione as linhas abaixo (ajuste os caminhos conforme sua instalação):
 
 ## 🔒 Segurança
 
-O script possui uma lista de exclusão para não mexer em pastas administrativas como `scripts`, `logs`, `config`, etc. Você pode guardar os scripts dentro de `/opt/backups/scripts/` com segurança.
+O script possui uma lista de exclusão personalizada via `IGNORED_FOLDERS` para não mexer em pastas administrativas como `scripts`, `logs`, `config`, etc. Você pode guardar os seus scripts com segurança desde que o nome da pasta esteja na lista de ignorados.
