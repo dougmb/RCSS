@@ -46,6 +46,9 @@ DRIVE_DESTINATION="${DRIVE_DESTINATION:-Backups}"
 # Log na mesma pasta do script por padrão, se não definido no .env
 LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/sync.log}"
 
+# Pastas a ignorar (carregadas do .env ou valores padrão de segurança)
+IGNORED_FOLDERS="${IGNORED_FOLDERS:-scripts config bin logs lost+found}"
+
 UPLOAD_ERRORS=0
 TOTAL_DELETED=0
 OVERALL_START=$(date +%s)
@@ -120,9 +123,9 @@ for project_path in "$BACKUP_ROOT"/*; do
     PROJECT_NAME=$(basename "$project_path")
 
     # 2. SEGURANÇA: Pula pastas que não são projetos de backup
-    # Ignora pastas ocultas (que começam com .) e pastas de sistema/scripts
-    if [[ "$PROJECT_NAME" == .* ]] || [[ "$PROJECT_NAME" =~ ^(scripts|config|bin|logs|lost\+found)$ ]]; then
-        log_verbose "   - Pulando pasta reservada: $PROJECT_NAME"
+    # Ignora pastas ocultas (que começam com .) e pastas definidas em IGNORED_FOLDERS
+    if [[ "$PROJECT_NAME" == .* ]] || [[ " ${IGNORED_FOLDERS} " == *" ${PROJECT_NAME} "* ]]; then
+        log_verbose "   - Pulando pasta ignorada/reservada: $PROJECT_NAME"
         continue
     fi
     
