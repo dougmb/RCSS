@@ -1,0 +1,290 @@
+[2026-03-17 10:59:49] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 10:59:49] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:00:00] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:00:00] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:00:00] [INFO   ] ✅ Sincronização concluída em 11s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:00:00
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 11s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:00:11] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:00:11] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:00:44] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:00:44] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:00:44] [INFO   ] ✅ Sincronização concluída em 33s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:00:44
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 33s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:00:57] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:00:57] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:00:58] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:00:58] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:01:04] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:01:04] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:01:04] [INFO   ] ✅ Sincronização concluída em 7s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:01:04
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 7s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:04:18] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:04:18] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:04:47] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:04:47] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:04:53] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:04:53] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:04:53] [INFO   ] ✅ Sincronização concluída em 35s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:04:53
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 35s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:08:40] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:08:40] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:08:41] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:08:41] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:08:43] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:08:43] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:08:43] [INFO   ] ✅ Sincronização concluída em 3s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:08:43
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 3s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:12:00] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:12:00] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:12:04] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:12:04] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:12:05] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:12:05] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:12:05] [INFO   ] ✅ Sincronização concluída em 5s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:12:05
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 5s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:12:30] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:12:30] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:12:31] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:12:31] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:12:32] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:12:32] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:12:32] [INFO   ] ✅ Sincronização concluída em 2s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:12:32
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 2s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:13:36] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:13:36] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:13:40] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:13:40] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:13:41] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:13:41] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:13:41] [INFO   ] ✅ Sincronização concluída em 5s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:13:41
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 5s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:27:43] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:27:43] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:27:45] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:27:45] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:27:51] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:27:51] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:27:51] [INFO   ] ✅ Sincronização concluída em 8s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:27:51
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 8s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:49:09] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 11:49:09] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 11:49:11] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:49:11] [INFO   ] → Processando projeto: SMA
+[2026-03-17 11:49:12] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 11:49:12] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 11:49:12] [INFO   ] ✅ Sincronização concluída em 3s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 11:49:12
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 3s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 11:49:31] [VERBOSE] Verificando se há backups recentes (últimos 2 dias)...
+[2026-03-17 11:49:32] [VERBOSE]    ✓ Backup recente detectado. Prosseguindo...
+[2026-03-17 11:49:32] [INFO   ] Iniciando limpeza na nuvem: douglas:/Backups
+[2026-03-17 11:49:32] [INFO   ] Critério: Arquivos com mais de 15 dias.
+[2026-03-17 11:49:32] [WARN   ] --- MODO SIMULAÇÃO (DRY-RUN) ATIVADO ---
+[2026-03-17 11:49:34] [INFO   ] Simulação concluída. Nenhum arquivo foi deletado.
+[2026-03-17 11:57:01] [VERBOSE] Verificando se há backups recentes (últimos 2 dias)...
+[2026-03-17 11:57:02] [VERBOSE]    ✓ Backup recente detectado. Prosseguindo...
+[2026-03-17 11:57:02] [INFO   ] Iniciando limpeza na nuvem: douglas:/Backups
+[2026-03-17 11:57:02] [INFO   ] Critério: Arquivos com mais de 15 dias.
+[2026-03-17 11:57:02] [WARN   ] --- MODO SIMULAÇÃO (DRY-RUN) ATIVADO ---
+[2026-03-17 11:57:04] [INFO   ] Simulação concluída. Nenhum arquivo foi deletado.
+[2026-03-17 12:12:33] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 12:12:33] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 12:12:35] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:12:35] [INFO   ] → Processando projeto: SMA
+[2026-03-17 12:12:36] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:12:36] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 12:12:36] [INFO   ] ✅ Sincronização concluída em 3s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 12:12:36
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 3s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 12:13:37] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 12:13:37] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 12:13:38] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:13:38] [INFO   ] → Processando projeto: SMA
+[2026-03-17 12:13:39] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:13:39] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 12:13:39] [INFO   ] ✅ Sincronização concluída em 2s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 12:13:39
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 2s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 12:14:03] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 12:14:03] [VERBOSE] Raiz: /opt/backups | Remoto: douglas: | Retenção: 7 dias
+[2026-03-17 12:14:03] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 12:14:05] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:14:05] [VERBOSE]    Limpando arquivos locais com mais de 7 dias...
+[2026-03-17 12:14:05] [VERBOSE]    Tempo do projeto: 2s
+[2026-03-17 12:14:05] [INFO   ] → Processando projeto: SMA
+[2026-03-17 12:14:06] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:14:06] [VERBOSE]    Limpando arquivos locais com mais de 7 dias...
+[2026-03-17 12:14:06] [VERBOSE]    Tempo do projeto: 1s
+[2026-03-17 12:14:06] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 12:14:06] [INFO   ] ✅ Sincronização concluída em 3s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 12:14:06
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 3s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 12:17:39] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 12:17:39] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 12:17:41] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:17:41] [INFO   ] → Processando projeto: SMA
+[2026-03-17 12:17:42] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:17:42] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 12:17:42] [INFO   ] ✅ Sincronização concluída em 3s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 12:17:42
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 3s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 12:17:46] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 12:17:46] [VERBOSE] Raiz: /opt/backups | Remoto: douglas: | Retenção: 7 dias
+[2026-03-17 12:17:46] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 12:17:47] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:17:47] [VERBOSE]    Limpando arquivos locais com mais de 7 dias...
+[2026-03-17 12:17:47] [VERBOSE]    Tempo do projeto: 1s
+[2026-03-17 12:17:47] [INFO   ] → Processando projeto: SMA
+[2026-03-17 12:17:48] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:17:48] [VERBOSE]    Limpando arquivos locais com mais de 7 dias...
+[2026-03-17 12:17:48] [VERBOSE]    Tempo do projeto: 1s
+[2026-03-17 12:17:49] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 12:17:49] [INFO   ] ✅ Sincronização concluída em 2s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 12:17:49
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 2s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+
+[2026-03-17 12:18:41] [INFO   ] Iniciando sincronização de backups...
+[2026-03-17 12:18:41] [INFO   ] → Processando projeto: MORACIA
+[2026-03-17 12:18:42] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:18:42] [INFO   ] → Processando projeto: SMA
+[2026-03-17 12:18:43] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-17 12:18:43] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-17 12:18:43] [INFO   ] ✅ Sincronização concluída em 2s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-17 12:18:43
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 2s
+  Destino Cloud  : douglas:/Backups/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 0
+════════════════════════════════════════════════
+

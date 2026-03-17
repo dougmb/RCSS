@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Restaurar Backups do Google Drive via rclone
+# Uso: ./restoreBackup.sh [-p] [-v] [-n]
+
+set -euo pipefail
+
+# ─────────────────────────────────────────────
+# Argumentos
+# ─────────────────────────────────────────────
+
+SHOW_PROGRESS=0
+VERBOSE=0
+DRY_RUN=0
+while getopts ":pvn" opt; do
+    case $opt in
+        p) SHOW_PROGRESS=1 ;;
+        v) VERBOSE=1 ;;
+        n) DRY_RUN=1 ;;
+        *) echo "Uso: $0 [-p] [-v] [-n]"; exit 1 ;;
+    esac
+done
+
+# ─────────────────────────────────────────────
+# Configuração
+# ─────────────────────────────────────────────
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/backup.env"
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo "[ERROR] Arquivo de configuração $ENV_FILE não encontrado." >&2
+    exit 1
+fi
+
+source "$ENV_FILE"
+
+# Validação das variáveis obrigatórias
+: "${BACKUP_ROOT:?Erro: BACKUP_ROOT não definido no backup.env}"
+: "${RCLONE_REMOTE:?Erro: RCLONE_REMOTE não definido no backup.env}"
+DRIVE_DESTINATION="${DRIVE_DESTINATION:-Backups}"
+
+# ─────────────────────────────────────────────
+# Validações iniciais
+# ─────────────────────────────────────────────
+
+if ! command -v rclone &>/dev/null; then
+    echo "[ERROR] rclone não encontrado. Instale antes de continuar." >&2
+    exit 1
+fi
+
+# ─────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────
+
+log_info()    { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] [\e[34mINFO\e[0m] $*"; }
+log_warn()    { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] [\e[33mWARN\e[0m] $*" >&2; }
+log_error()   { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] [\e[31mERROR\e[0m] $*" >&2; }
+
+# ─────────────────────────────────────────────
+# Interface de Seleção
+# ─────────────────────────────────────────────
+
+select_from_list() {
+    local title="$1"; shift
+    local options=("$@")
+    
+    # Imprime o menu para o stderr (>&2) para que apareça na tela 
+    # e não seja capturado pela variável no $(...)
+    echo -e "\n\e[1m=== $title ===\e[0m" >&2
+    for i in "${!options[@]}"; do
+        echo "  [$((i+1))] ${options[$i]}" >&2
+    done
+    echo "" >&2
+
+    while true; do
+        read -p "Selecione uma opção (1-${#options[@]}): " choice >&2
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#options[@]}" ]; then
+            # Apenas o valor final vai para o stdout para ser capturado
+            echo "${options[$((choice-1))]}"
+            return 0
+        fi
+        echo "Opção inválida." >&2
+    done
+}
+
+# ─────────────────────────────────────────────
+# Execução
+# ─────────────────────────────────────────────
+
+# 1. Buscar Projetos na Nuvem
+log_info "Buscando projetos no Drive..."
+# Captura de forma robusta lidando com espaços
+mapfile -t PROJECTS < <(rclone lsf "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/" --dirs-only)
+
+if [ ${#PROJECTS[@]} -eq 0 ]; then
+    log_error "Nenhum projeto encontrado em ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/"
+    exit 1
+fi
+
+SELECTED_PROJECT=$(select_from_list "SELECIONE O PROJETO" "${PROJECTS[@]}")
+SELECTED_PROJECT=${SELECTED_PROJECT%/} # Remove barra final
+
+# 2. Buscar Arquivos do Projeto
+log_info "Buscando arquivos para '$SELECTED_PROJECT'..."
+mapfile -t FILES < <(rclone lsf "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/${SELECTED_PROJECT}/" --files-only | sort -r)
+
+if [ ${#FILES[@]} -eq 0 ]; then
+    log_error "Nenhum arquivo encontrado para este projeto."
+    exit 1
+fi
+
+SELECTED_FILE=$(select_from_list "SELECIONE O ARQUIVO PARA BAIXAR" "${FILES[@]}")
+
+# 3. Download
+LOCAL_PATH="${BACKUP_ROOT}/${SELECTED_PROJECT}"
+mkdir -p "$LOCAL_PATH"
+
+log_info "Baixando $SELECTED_FILE para $LOCAL_PATH..."
+RCLONE_FLAGS=("--ignore-times")
+[ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
+[ "$VERBOSE" = "1" ] && RCLONE_FLAGS+=("-v")
+[ "$DRY_RUN" = "1" ] && RCLONE_FLAGS+=("--dry-run")
+rclone copy "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/${SELECTED_PROJECT}/${SELECTED_FILE}" "$LOCAL_PATH/" "${RCLONE_FLAGS[@]}"
+
+log_info "Procedimento finalizado."
