@@ -1,133 +1,133 @@
-# RcloneCloudSimpleScripts(RCSS) - Sincronização de Backups
+# RcloneCloudSimpleScripts(RCSS) - Backup Synchronization
 
-Sistema automatizado para gestão de backups multi-projeto integrando armazenamento local e Google Drive via **rclone**.
+Automated system for multi-project backup management integrating local storage and Google Drive via **rclone**.
 
-## 📂 Resumo da Estrutura
+## 📂 Structure Overview
 
-- **`uploadBackup.sh`**: Faz o backup para a nuvem de todas as pastas dentro do `BACKUP_ROOT`.
-- **`restoreBackup.sh`**: Faz o download interativo de um backup selecionado da nuvem para o servidor local.
-- **`cleanRemoteBackups.sh`**: Faz a limpeza remota dos backups mais antigos do que `REMOTE_RETENTION_DAYS`.
-- **`backup.env`**: Arquivo de configuração com os settings do ambiente.
-- **`sync.log`**: Contém os logs históricos das execuções dos scripts.
-
----
-
-## 🛠️ Conhecendo os Scripts
-
-### 1. `uploadBackup.sh` (Sincronização Principal)
-
-**O que faz:** Percorre o diretório de backups local e sobe arquivos novos/alterados para a nuvem.
-
-- **Detecção Automática:** Identifica subpastas em `/opt/backups/` como projetos independentes.
-- **Upload Eficiente:** Usa `rclone copy --update` para economizar banda.
-- **Faxina Local:** Remove arquivos do servidor local que excederam o `RETENTION_DAYS` (somente após upload bem-sucedido).
-- **Segurança:** Ignora pastas ocultas e diretórios administrativos (configurável via `IGNORED_FOLDERS`).
-
-### 2. `cleanRemoteBackups.sh` (Manutenção da Nuvem)
-
-**O que faz:** Gerencia o espaço no Google Drive removendo backups antigos.
-
-- **Independente:** Roda separado do upload para maior controle.
-- **Trava de Segurança:** **NUNCA** apaga arquivos se detectar que os backups pararam de ser feitos (baseado em `REMOTE_CLEANUP_SAFETY_DAYS`).
-- **Simulação:** Permite rodar com a flag `-d` (dry-run) para ver o que seria apagado sem deletar nada.
-
-### 3. `restoreBackup.sh` (Download de Backups)
-
-**O que faz:** Interface interativa para baixar backups da nuvem para o servidor local.
-
-- **Navegação:** Lista projetos e arquivos diretamente do Google Drive.
-- **Download Seletivo:** Permite escolher exatamente qual projeto e arquivo restaurar.
+- **`uploadBackup.sh`**: Backs up all folders within `BACKUP_ROOT` to the cloud.
+- **`restoreBackup.sh`**: Interactive download of a selected backup from the cloud to the local server.
+- **`cleanRemoteBackups.sh`**: Remote cleanup of backups older than `REMOTE_RETENTION_DAYS`.
+- **`backup.env`**: Configuration file with environment settings.
+- **`sync.log`**: Contains historical logs of script executions.
 
 ---
 
-## 🚀 Configuração Passo a Passo
+## 🛠️ Getting to Know the Scripts
 
-### 1. Instalar o rclone
+### 1. `uploadBackup.sh` (Main Synchronization)
 
-Certifique-se de que o rclone está instalado no servidor:
+**What it does:** Iterates through the local backup directory and uploads new/changed files to the cloud.
+
+- **Automatic Detection:** Identifies subfolders in `/opt/backups/` as independent projects.
+- **Efficient Upload:** Uses `rclone copy --update` to save bandwidth.
+- **Local Cleanup:** Removes files from the local server that have exceeded `RETENTION_DAYS` (only after successful upload).
+- **Security:** Ignores hidden folders and administrative directories (configurable via `IGNORED_FOLDERS`).
+
+### 2. `cleanRemoteBackups.sh` (Cloud Maintenance)
+
+**What it does:** Manages Google Drive space by removing old backups.
+
+- **Independent:** Runs separately from the upload for greater control.
+- **Safety Lock:** **NEVER** deletes files if it detects that backups have stopped being made (based on `REMOTE_CLEANUP_SAFETY_DAYS`).
+- **Simulation:** Allows running with the `-d` (dry-run) flag to see what would be deleted without actually deleting anything.
+
+### 3. `restoreBackup.sh` (Backup Download)
+
+**What it does:** Interactive interface to download backups from the cloud to the local server.
+
+- **Navigation:** Lists projects and files directly from Google Drive.
+- **Selective Download:** Allows choosing exactly which project and file to restore.
+
+---
+
+## 🚀 Step-by-Step Configuration
+
+### 1. Install rclone
+
+Ensure rclone is installed on the server:
 
 ```bash
 sudo apt install rclone  # Debian/Ubuntu
 ```
 
-### 2. Configurar o Remote com Pasta Específica
+### 2. Configure Remote with a Specific Folder
 
-Para garantir que os arquivos caiam exatamente na pasta desejada, siga estes passos:
+To ensure files go exactly to the desired folder, follow these steps:
 
-1. No terminal, execute: `rclone config`
-2. Digite `n` para um novo remote e nomeie como `douglas`.
-3. Escolha o tipo `drive` (Google Drive).
-4. Deixe `client_id` e `client_secret` em branco.
-5. No escopo (`scope`), escolha `1` (Full access).
-6. **Importante:** Quando perguntar `root_folder_id`, cole o ID da sua pasta.
-7. Em `service_account_file`, deixe em branco.
-8. Em `Edit advanced config`, digite `n`.
-9. Em `Use auto config`, digite `y` se estiver no seu PC local ou `n` se estiver num servidor remoto (via SSH).
-10. Confirme se está tudo certo com `y`.
+1. In the terminal, run: `rclone config`
+2. Type `n` for a new remote and name it `douglas`.
+3. Choose the `drive` type (Google Drive).
+4. Leave `client_id` and `client_secret` blank.
+5. In scope (`scope`), choose `1` (Full access).
+6. **Important:** When asked for `root_folder_id`, paste your folder ID.
+7. Leave `service_account_file` blank.
+8. In `Edit advanced config`, type `n`.
+9. In `Use auto config`, type `y` if on your local PC or `n` if on a remote server (via SSH).
+10. Confirm everything is correct with `y`.
 
-### 3. Configurar o arquivo `backup.env`
+### 3. Configure the `backup.env` file
 
-Edite o arquivo `backup.env` na mesma pasta do script para definir:
+Edit the `backup.env` file in the same folder as the script to define:
 
-- `BACKUP_ROOT`: Onde estão seus backups locais.
-- `RCLONE_REMOTE`: O nome que você configurou (ex: `douglas:`).
-- `DRIVE_DESTINATION`: Nome da subpasta no Drive.
-- `RETENTION_DAYS`: Retenção no servidor local.
-- `REMOTE_RETENTION_DAYS`: Retenção na nuvem.
-- `REMOTE_CLEANUP_SAFETY_DAYS`: Janela de segurança para limpeza remota.
-- `IGNORED_FOLDERS`: Lista de pastas (separadas por espaço) a serem ignoradas na raiz de backups.
+- `BACKUP_ROOT`: Where your local backups are located.
+- `RCLONE_REMOTE`: The name you configured (e.g., `douglas:`).
+- `DRIVE_DESTINATION`: Subfolder name on Drive.
+- `RETENTION_DAYS`: Retention on the local server.
+- `REMOTE_RETENTION_DAYS`: Retention in the cloud.
+- `REMOTE_CLEANUP_SAFETY_DAYS`: Safety window for remote cleanup.
+- `IGNORED_FOLDERS`: List of folders (space-separated) to be ignored in the backup root.
 
 ---
 
-## 📅 Agendamento (Cron)
+## 📅 Scheduling (Cron)
 
-Para automatizar o sistema, recomendamos agendar o Upload e a Limpeza em horários distintos.
+To automate the system, we recommend scheduling Upload and Cleanup at different times.
 
-Edite seu crontab:
+Edit your crontab:
 
 ```bash
 crontab -e
 ```
 
-Adicione as linhas abaixo (ajuste os caminhos conforme sua instalação):
+Add the lines below (adjust paths according to your installation):
 
 ```bash
-# 1. Sincronizar backups para a nuvem (Todos os dias às 03:00)
+# 1. Sync backups to the cloud (Every day at 03:00)
 0 3 * * * /opt/backup/uploadBackup.sh >> /opt/backup/sync.log 2>&1
 
-# 2. Limpar backups antigos na nuvem (Todos os domingos às 05:00)
+# 2. Clean old backups in the cloud (Every Sunday at 05:00)
 0 5 * * 0 /opt/backup/cleanRemoteBackups.sh >> /opt/backup/sync.log 2>&1
 ```
 
 ---
 
-## 📋 Comandos Úteis
+## 📋 Useful Commands
 
-- **Rodar upload com barra de progresso:**
+- **Run upload with a progress bar:**
 
   ```bash
   ./uploadBackup.sh -p -v
   ```
 
-- **Restaurar um backup interativamente:**
+- **Restore a backup interactively:**
 
   ```bash
   ./restoreBackup.sh -p -v
   ```
 
-- **Simular limpeza na nuvem (ver o que seria apagado):**
+- **Simulate cloud cleanup (see what would be deleted):**
 
   ```bash
   ./cleanRemoteBackups.sh -d -v
   ```
 
-- **Verificar os logs:**
+- **Check logs:**
   ```bash
   tail -f sync.log
   ```
 
 ---
 
-## 🔒 Segurança
+## 🔒 Security
 
-O script possui uma lista de exclusão personalizada via `IGNORED_FOLDERS` para não mexer em pastas administrativas como `scripts`, `logs`, `config`, etc. Você pode guardar os seus scripts com segurança desde que o nome da pasta esteja na lista de ignorados.
+The script has a custom exclusion list via `IGNORED_FOLDERS` to avoid touching administrative folders like `scripts`, `logs`, `config`, etc. You can safely store your scripts as long as the folder name is in the ignored list.
