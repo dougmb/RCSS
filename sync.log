@@ -288,3 +288,19 @@
   Arquivos Removidos (Local): 0
 ════════════════════════════════════════════════
 
+[2026-03-25 09:04:14] [INFO   ] Iniciando sincronização de backups...
+[2026-03-25 09:04:14] [INFO   ] → Processando projeto: chat
+[2026-03-25 09:04:50] [INFO   ]    ✓ Sincronizado com sucesso.
+[2026-03-25 09:04:50] [INFO   ]    - Removidos 11 arquivos antigos.
+[2026-03-25 09:04:50] [INFO   ] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-03-25 09:04:50] [INFO   ] ✅ Sincronização concluída em 36s
+════════════════════════════════════════════════
+  RESUMO DA SINCRONIZAÇÃO — 2026-03-25 09:04:50
+════════════════════════════════════════════════
+  Status         : SUCCESS
+  Duração        : 36s
+  Destino Cloud  : douglas:/Anydesk/
+  Projetos c/ Erro: 0
+  Arquivos Removidos (Local): 11
+════════════════════════════════════════════════
+

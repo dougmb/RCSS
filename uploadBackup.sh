@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sincronização de Backups para Google Drive via rclone
-# Uso: ./uploadBackup.sh [-v] [-p]
+# Uso: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>]
 # Este script percorre /opt/backups/<PROJETO> e sobe para o Drive.
 
 set -euo pipefail
@@ -11,11 +11,17 @@ set -euo pipefail
 
 VERBOSE=0
 SHOW_PROGRESS=0
-while getopts ":vp" opt; do
+BACKUP_ROOT_OVERRIDE=""
+RCLONE_REMOTE_OVERRIDE=""
+DRIVE_DESTINATION_OVERRIDE=""
+while getopts ":vpo:r:d:" opt; do
     case $opt in
         v) VERBOSE=1 ;;
         p) SHOW_PROGRESS=1 ;;
-        *) echo "Uso: $0 [-v] [-p]"; exit 1 ;;
+        o) BACKUP_ROOT_OVERRIDE="$OPTARG" ;;
+        r) RCLONE_REMOTE_OVERRIDE="$OPTARG" ;;
+        d) DRIVE_DESTINATION_OVERRIDE="$OPTARG" ;;
+        *) echo "Uso: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>]"; exit 1 ;;
     esac
 done
 
@@ -42,6 +48,17 @@ source "$ENV_FILE"
 
 # Configuração da pasta de destino no Google Drive (ex: Backups)
 DRIVE_DESTINATION="${DRIVE_DESTINATION:-Backups}"
+
+# Override via CLI tem prioridade sobre o backup.env
+if [ -n "$BACKUP_ROOT_OVERRIDE" ]; then
+    BACKUP_ROOT="$BACKUP_ROOT_OVERRIDE"
+fi
+if [ -n "$RCLONE_REMOTE_OVERRIDE" ]; then
+    RCLONE_REMOTE="$RCLONE_REMOTE_OVERRIDE"
+fi
+if [ -n "$DRIVE_DESTINATION_OVERRIDE" ]; then
+    DRIVE_DESTINATION="$DRIVE_DESTINATION_OVERRIDE"
+fi
 
 # Log na mesma pasta do script por padrão, se não definido no .env
 LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/sync.log}"

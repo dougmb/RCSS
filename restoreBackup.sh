@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Restaurar Backups do Google Drive via rclone
-# Uso: ./restoreBackup.sh [-p] [-v] [-n]
+# Uso: ./restoreBackup.sh [-p] [-v] [-n] [-o <output_path>]
 
 set -euo pipefail
 
@@ -11,12 +11,14 @@ set -euo pipefail
 SHOW_PROGRESS=0
 VERBOSE=0
 DRY_RUN=0
-while getopts ":pvn" opt; do
+OUTPUT_PATH_OVERRIDE=""
+while getopts ":pvno:" opt; do
     case $opt in
         p) SHOW_PROGRESS=1 ;;
         v) VERBOSE=1 ;;
         n) DRY_RUN=1 ;;
-        *) echo "Uso: $0 [-p] [-v] [-n]"; exit 1 ;;
+        o) OUTPUT_PATH_OVERRIDE="$OPTARG" ;;
+        *) echo "Uso: $0 [-p] [-v] [-n] [-o <output_path>]"; exit 1 ;;
     esac
 done
 
@@ -112,7 +114,11 @@ fi
 SELECTED_FILE=$(select_from_list "SELECIONE O ARQUIVO PARA BAIXAR" "${FILES[@]}")
 
 # 3. Download
-LOCAL_PATH="${BACKUP_ROOT}/${SELECTED_PROJECT}"
+if [ -n "$OUTPUT_PATH_OVERRIDE" ]; then
+    LOCAL_PATH="$OUTPUT_PATH_OVERRIDE"
+else
+    LOCAL_PATH="${BACKUP_ROOT}/${SELECTED_PROJECT}"
+fi
 mkdir -p "$LOCAL_PATH"
 
 log_info "Baixando $SELECTED_FILE para $LOCAL_PATH..."

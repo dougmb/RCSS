@@ -4,8 +4,8 @@ Automated system for multi-project backup management integrating local storage a
 
 ## 📂 Structure Overview
 
-- **`uploadBackup.sh`**: Backs up all folders within `BACKUP_ROOT` to the cloud.
-- **`restoreBackup.sh`**: Interactive download of a selected backup from the cloud to the local server.
+- **`uploadBackup.sh`**: Backs up all folders within `BACKUP_ROOT` to the cloud. Supports CLI overrides (`-o`, `-r`, `-d`).
+- **`restoreBackup.sh`**: Interactive download of a selected backup from the cloud to the local server. Supports custom output path (`-o`).
 - **`cleanRemoteBackups.sh`**: Remote cleanup of backups older than `REMOTE_RETENTION_DAYS`.
 - **`backup.env`**: Configuration file with environment settings.
 - **`sync.log`**: Contains historical logs of script executions.
@@ -37,6 +37,7 @@ Automated system for multi-project backup management integrating local storage a
 
 - **Navigation:** Lists projects and files directly from Google Drive.
 - **Selective Download:** Allows choosing exactly which project and file to restore.
+- **Custom Output:** Use `-o <path>` to restore to a specific directory instead of the default `BACKUP_ROOT/<project>`.
 
 ---
 
@@ -109,10 +110,29 @@ Add the lines below (adjust paths according to your installation):
   ./uploadBackup.sh -p -v
   ```
 
+- **Run upload overriding backup root, remote, or destination:**
+
+  ```bash
+  # Override backup source directory (origin)
+  ./uploadBackup.sh -o /mnt/other/backups
+
+  # Override rclone remote and drive destination
+  ./uploadBackup.sh -r otherremote: -d OtherFolder
+
+  # Combine all overrides
+  ./uploadBackup.sh -v -p -o /mnt/other/backups -r otherremote: -d OtherFolder
+  ```
+
 - **Restore a backup interactively:**
 
   ```bash
   ./restoreBackup.sh -p -v
+  ```
+
+- **Restore a backup to a custom directory:**
+
+  ```bash
+  ./restoreBackup.sh -p -v -o /tmp/my-restore
   ```
 
 - **Simulate cloud cleanup (see what would be deleted):**
