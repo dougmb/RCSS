@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Limpeza de Backups Antigos na Nuvem (Google Drive) via rclone
-# Uso: ./cleanRemoteBackups.sh [-v] [-d] [-f]
+# Cloud Backup Cleanup (Google Drive) via rclone
+# Usage: ./cleanRemoteBackups.sh [-v] [-d] [-f]
 
 set -euo pipefail
 
 # ─────────────────────────────────────────────
-# Argumentos
+# Arguments
 # ─────────────────────────────────────────────
 
 VERBOSE=0
@@ -16,31 +16,31 @@ while getopts ":vdf" opt; do
         v) VERBOSE=1 ;;
         d) DRY_RUN=1 ;;
         f) FORCE=1 ;;
-        *) echo "Uso: $0 [-v] [-d] [-f]"; exit 1 ;;
+        *) echo "Usage: $0 [-v] [-d] [-f]"; exit 1 ;;
     esac
 done
 
 # ─────────────────────────────────────────────
-# Configuração
+# Configuration
 # ─────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/backup.env"
 
 if [ ! -f "$ENV_FILE" ]; then
-    echo "[ERROR] Arquivo de configuração $ENV_FILE não encontrado." >&2
+    echo "[ERROR] Configuration file $ENV_FILE not found." >&2
     exit 1
 fi
 
 source "$ENV_FILE"
 
-# Validação das variáveis obrigatórias
-: "${RCLONE_REMOTE:?Erro: RCLONE_REMOTE não definido no backup.env}"
-: "${REMOTE_RETENTION_DAYS:?Erro: REMOTE_RETENTION_DAYS não definido no backup.env}"
+# Required variables validation
+: "${RCLONE_REMOTE:?Error: RCLONE_REMOTE not defined in backup.env}"
+: "${REMOTE_RETENTION_DAYS:?Error: REMOTE_RETENTION_DAYS not defined in backup.env}"
 REMOTE_CLEANUP_SAFETY_DAYS="${REMOTE_CLEANUP_SAFETY_DAYS:-2}"
 DRIVE_DESTINATION="${DRIVE_DESTINATION:-Backups}"
 
-# Log na mesma pasta do script por padrão
+# Log file defaults to the script directory
 LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/sync.log}"
 
 # ─────────────────────────────────────────────
@@ -64,33 +64,33 @@ log_verbose() {
 }
 
 # ─────────────────────────────────────────────
-# Verificação de Segurança
+# Safety Check
 # ─────────────────────────────────────────────
 
 REMOTE_PATH="${RCLONE_REMOTE}/${DRIVE_DESTINATION}"
 
 if [ "$FORCE" = "1" ]; then
-    log_warn "--- MODO FORÇADO ATIVADO: Ignorando trava de segurança ---"
+    log_warn "--- FORCE MODE ENABLED: Bypassing safety lock ---"
 else
-    log_verbose "Verificando se há backups recentes (últimos $REMOTE_CLEANUP_SAFETY_DAYS dias)..."
-    
-    # Busca arquivos recentes no Drive
+    log_verbose "Checking for recent backups (last $REMOTE_CLEANUP_SAFETY_DAYS days)..."
+
+    # Search for recent files on Drive
     RECENT_FILES=$(rclone lsf "$REMOTE_PATH" --max-age "${REMOTE_CLEANUP_SAFETY_DAYS}d" --recursive --files-only 2>/dev/null | head -n 1) || true
-    
+
     if [ -z "$RECENT_FILES" ]; then
-        log_error "⚠️ SEGURANÇA: Nenhum backup recente encontrado no Drive nos últimos $REMOTE_CLEANUP_SAFETY_DAYS dias!"
-        log_error "A limpeza foi ABORTADA para preservar o histórico existente. Verifique se o script de backup está funcionando."
+        log_error "⚠️ SAFETY: No recent backups found on Drive in the last $REMOTE_CLEANUP_SAFETY_DAYS days!"
+        log_error "Cleanup was ABORTED to preserve existing history. Check if the backup script is running."
         exit 1
     fi
-    log_verbose "   ✓ Backup recente detectado. Prosseguindo..."
+    log_verbose "   ✓ Recent backup detected. Proceeding..."
 fi
 
 # ─────────────────────────────────────────────
-# Execução da Limpeza
+# Cleanup Execution
 # ─────────────────────────────────────────────
 
-log_info "Iniciando limpeza na nuvem: $REMOTE_PATH"
-log_info "Critério: Arquivos com mais de $REMOTE_RETENTION_DAYS dias."
+log_info "Starting cloud cleanup: $REMOTE_PATH"
+log_info "Criteria: Files older than $REMOTE_RETENTION_DAYS days."
 
 RCLONE_FLAGS=("--min-age" "${REMOTE_RETENTION_DAYS}d")
 
@@ -99,15 +99,15 @@ if [ "$VERBOSE" = "1" ]; then
 fi
 
 if [ "$DRY_RUN" = "1" ]; then
-    log_warn "--- MODO SIMULAÇÃO (DRY-RUN) ATIVADO ---"
+    log_warn "--- DRY-RUN MODE ENABLED ---"
     RCLONE_FLAGS+=("--dry-run")
 fi
 
-# Executa a deleção
+# Execute deletion
 if rclone delete "$REMOTE_PATH" "${RCLONE_FLAGS[@]}"; then
-    [ "$DRY_RUN" = "1" ] && log_info "Simulação concluída. Nenhum arquivo foi deletado." || log_info "Limpeza concluída com sucesso."
+    [ "$DRY_RUN" = "1" ] && log_info "Simulation completed. No files were deleted." || log_info "Cleanup completed successfully."
 else
-    log_error "Erro ao executar a limpeza no Drive."
+    log_error "Error executing Drive cleanup."
     exit 1
 fi
 

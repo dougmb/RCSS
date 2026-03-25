@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Restaurar Backups do Google Drive via rclone
-# Uso: ./restoreBackup.sh [-p] [-v] [-n] [-o <output_path>]
+# Restore Backups from Google Drive via rclone
+# Usage: ./restoreBackup.sh [-p] [-v] [-n] [-o <output_path>]
 
 set -euo pipefail
 
 # ─────────────────────────────────────────────
-# Argumentos
+# Arguments
 # ─────────────────────────────────────────────
 
 SHOW_PROGRESS=0
@@ -18,35 +18,35 @@ while getopts ":pvno:" opt; do
         v) VERBOSE=1 ;;
         n) DRY_RUN=1 ;;
         o) OUTPUT_PATH_OVERRIDE="$OPTARG" ;;
-        *) echo "Uso: $0 [-p] [-v] [-n] [-o <output_path>]"; exit 1 ;;
+        *) echo "Usage: $0 [-p] [-v] [-n] [-o <output_path>]"; exit 1 ;;
     esac
 done
 
 # ─────────────────────────────────────────────
-# Configuração
+# Configuration
 # ─────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/backup.env"
 
 if [ ! -f "$ENV_FILE" ]; then
-    echo "[ERROR] Arquivo de configuração $ENV_FILE não encontrado." >&2
+    echo "[ERROR] Configuration file $ENV_FILE not found." >&2
     exit 1
 fi
 
 source "$ENV_FILE"
 
-# Validação das variáveis obrigatórias
-: "${BACKUP_ROOT:?Erro: BACKUP_ROOT não definido no backup.env}"
-: "${RCLONE_REMOTE:?Erro: RCLONE_REMOTE não definido no backup.env}"
+# Required variables validation
+: "${BACKUP_ROOT:?Error: BACKUP_ROOT not defined in backup.env}"
+: "${RCLONE_REMOTE:?Error: RCLONE_REMOTE not defined in backup.env}"
 DRIVE_DESTINATION="${DRIVE_DESTINATION:-Backups}"
 
 # ─────────────────────────────────────────────
-# Validações iniciais
+# Initial validations
 # ─────────────────────────────────────────────
 
 if ! command -v rclone &>/dev/null; then
-    echo "[ERROR] rclone não encontrado. Instale antes de continuar." >&2
+    echo "[ERROR] rclone not found. Please install it before continuing." >&2
     exit 1
 fi
 
@@ -59,15 +59,15 @@ log_warn()    { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] [\e[33mWARN\e[0m] $*" >&
 log_error()   { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] [\e[31mERROR\e[0m] $*" >&2; }
 
 # ─────────────────────────────────────────────
-# Interface de Seleção
+# Selection Interface
 # ─────────────────────────────────────────────
 
 select_from_list() {
     local title="$1"; shift
     local options=("$@")
-    
-    # Imprime o menu para o stderr (>&2) para que apareça na tela 
-    # e não seja capturado pela variável no $(...)
+
+    # Print menu to stderr so it appears on screen
+    # and is not captured by the $(...) variable
     echo -e "\n\e[1m=== $title ===\e[0m" >&2
     for i in "${!options[@]}"; do
         echo "  [$((i+1))] ${options[$i]}" >&2
@@ -75,43 +75,43 @@ select_from_list() {
     echo "" >&2
 
     while true; do
-        read -p "Selecione uma opção (1-${#options[@]}): " choice >&2
+        read -p "Select an option (1-${#options[@]}): " choice >&2
         if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#options[@]}" ]; then
-            # Apenas o valor final vai para o stdout para ser capturado
+            # Only the final value goes to stdout to be captured
             echo "${options[$((choice-1))]}"
             return 0
         fi
-        echo "Opção inválida." >&2
+        echo "Invalid option." >&2
     done
 }
 
 # ─────────────────────────────────────────────
-# Execução
+# Execution
 # ─────────────────────────────────────────────
 
-# 1. Buscar Projetos na Nuvem
-log_info "Buscando projetos no Drive..."
-# Captura de forma robusta lidando com espaços
+# 1. Fetch Projects from Cloud
+log_info "Fetching projects from Drive..."
+# Robust capture handling spaces
 mapfile -t PROJECTS < <(rclone lsf "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/" --dirs-only)
 
 if [ ${#PROJECTS[@]} -eq 0 ]; then
-    log_error "Nenhum projeto encontrado em ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/"
+    log_error "No projects found at ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/"
     exit 1
 fi
 
-SELECTED_PROJECT=$(select_from_list "SELECIONE O PROJETO" "${PROJECTS[@]}")
-SELECTED_PROJECT=${SELECTED_PROJECT%/} # Remove barra final
+SELECTED_PROJECT=$(select_from_list "SELECT PROJECT" "${PROJECTS[@]}")
+SELECTED_PROJECT=${SELECTED_PROJECT%/} # Remove trailing slash
 
-# 2. Buscar Arquivos do Projeto
-log_info "Buscando arquivos para '$SELECTED_PROJECT'..."
+# 2. Fetch Project Files
+log_info "Fetching files for '$SELECTED_PROJECT'..."
 mapfile -t FILES < <(rclone lsf "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/${SELECTED_PROJECT}/" --files-only | sort -r)
 
 if [ ${#FILES[@]} -eq 0 ]; then
-    log_error "Nenhum arquivo encontrado para este projeto."
+    log_error "No files found for this project."
     exit 1
 fi
 
-SELECTED_FILE=$(select_from_list "SELECIONE O ARQUIVO PARA BAIXAR" "${FILES[@]}")
+SELECTED_FILE=$(select_from_list "SELECT FILE TO DOWNLOAD" "${FILES[@]}")
 
 # 3. Download
 if [ -n "$OUTPUT_PATH_OVERRIDE" ]; then
@@ -121,11 +121,11 @@ else
 fi
 mkdir -p "$LOCAL_PATH"
 
-log_info "Baixando $SELECTED_FILE para $LOCAL_PATH..."
+log_info "Downloading $SELECTED_FILE to $LOCAL_PATH..."
 RCLONE_FLAGS=("--ignore-times")
 [ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
 [ "$VERBOSE" = "1" ] && RCLONE_FLAGS+=("-v")
 [ "$DRY_RUN" = "1" ] && RCLONE_FLAGS+=("--dry-run")
 rclone copy "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/${SELECTED_PROJECT}/${SELECTED_FILE}" "$LOCAL_PATH/" "${RCLONE_FLAGS[@]}"
 
-log_info "Procedimento finalizado."
+log_info "Procedure completed."

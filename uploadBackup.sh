@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Sincronização de Backups para Google Drive via rclone
-# Uso: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <arquivo>]
-# Este script percorre /opt/backups/<PROJETO> e sobe para o Drive.
+# Backup Synchronization to Google Drive via rclone
+# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>]
+# This script iterates through /opt/backups/<PROJECT> and uploads to Drive.
 
 set -euo pipefail
 
 # ─────────────────────────────────────────────
-# Argumentos
+# Arguments
 # ─────────────────────────────────────────────
 
 VERBOSE=0
@@ -23,35 +23,35 @@ while getopts ":vpo:r:d:a:" opt; do
         r) RCLONE_REMOTE_OVERRIDE="$OPTARG" ;;
         d) DRIVE_DESTINATION_OVERRIDE="$OPTARG" ;;
         a) SINGLE_FILE="$OPTARG" ;;
-        *) echo "Uso: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <arquivo>]"; exit 1 ;;
+        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>]"; exit 1 ;;
     esac
 done
 
 # ─────────────────────────────────────────────
-# Configuração (Exclusiva do backup.env)
+# Configuration (from backup.env)
 # ─────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/backup.env"
 
 if [ ! -f "$ENV_FILE" ]; then
-    echo "[ERROR] Arquivo de configuração $ENV_FILE não encontrado." >&2
+    echo "[ERROR] Configuration file $ENV_FILE not found." >&2
     exit 1
 fi
 
-# Carrega as configurações
+# Load configuration
 # shellcheck source=/dev/null
 source "$ENV_FILE"
 
-# Validação das variáveis obrigatórias
-: "${BACKUP_ROOT:?Erro: BACKUP_ROOT não definido no backup.env}"
-: "${RCLONE_REMOTE:?Erro: RCLONE_REMOTE não definido no backup.env}"
-: "${RETENTION_DAYS:?Erro: RETENTION_DAYS não definido no backup.env}"
+# Required variables validation
+: "${BACKUP_ROOT:?Error: BACKUP_ROOT not defined in backup.env}"
+: "${RCLONE_REMOTE:?Error: RCLONE_REMOTE not defined in backup.env}"
+: "${RETENTION_DAYS:?Error: RETENTION_DAYS not defined in backup.env}"
 
-# Configuração da pasta de destino no Google Drive (ex: Backups)
+# Drive destination folder (e.g.: Backups)
 DRIVE_DESTINATION="${DRIVE_DESTINATION:-Backups}"
 
-# Override via CLI tem prioridade sobre o backup.env
+# CLI overrides take priority over backup.env
 if [ -n "$BACKUP_ROOT_OVERRIDE" ]; then
     BACKUP_ROOT="$BACKUP_ROOT_OVERRIDE"
 fi
@@ -62,10 +62,10 @@ if [ -n "$DRIVE_DESTINATION_OVERRIDE" ]; then
     DRIVE_DESTINATION="$DRIVE_DESTINATION_OVERRIDE"
 fi
 
-# Log na mesma pasta do script por padrão, se não definido no .env
+# Log file defaults to the script directory if not set in .env
 LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/sync.log}"
 
-# Pastas a ignorar (carregadas do .env ou valores padrão de segurança)
+# Folders to ignore (loaded from .env or safe defaults)
 IGNORED_FOLDERS="${IGNORED_FOLDERS:-scripts config bin logs lost+found}"
 
 UPLOAD_ERRORS=0
@@ -80,7 +80,6 @@ _log() {
     local level="$1"; shift
     local msg="[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*"
     echo "$msg"
-    # Append ao final do arquivo de log (EOF)
     echo "$msg" >> "$LOG_FILE"
 }
 
@@ -102,42 +101,42 @@ rclone_log_level() {
     [ "$VERBOSE" = "1" ] && echo "DEBUG" || echo "NOTICE"
 }
 
-# Trap para erros inesperados
+# Trap for unexpected errors
 cleanup_on_error() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
-        log_error "O script terminou inesperadamente com o código $exit_code"
+        log_error "Script terminated unexpectedly with exit code $exit_code"
     fi
 }
 trap cleanup_on_error EXIT
 
 # ─────────────────────────────────────────────
-# Validações iniciais
+# Initial validations
 # ─────────────────────────────────────────────
 
 if ! command -v rclone &>/dev/null; then
-    log_error "rclone não encontrado. Instale antes de continuar."
+    log_error "rclone not found. Please install it before continuing."
     exit 1
 fi
 
 # ─────────────────────────────────────────────
-# Modo arquivo avulso (-a)
+# Single file mode (-a)
 # ─────────────────────────────────────────────
 
 if [ -n "$SINGLE_FILE" ]; then
     if [ ! -f "$SINGLE_FILE" ]; then
-        log_error "Arquivo não encontrado: $SINGLE_FILE"
+        log_error "File not found: $SINGLE_FILE"
         exit 1
     fi
 
-    log_info "Enviando arquivo avulso: $SINGLE_FILE"
+    log_info "Uploading single file: $SINGLE_FILE"
     RCLONE_FLAGS=("--log-level" "$(rclone_log_level)" "--retries" "3")
     [ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
 
     if rclone copy "$SINGLE_FILE" "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/" "${RCLONE_FLAGS[@]}"; then
-        log_info "✓ Arquivo enviado com sucesso."
+        log_info "✓ File uploaded successfully."
     else
-        log_error "Falha ao enviar $SINGLE_FILE"
+        log_error "Failed to upload $SINGLE_FILE"
         trap - EXIT
         exit 1
     fi
@@ -147,91 +146,90 @@ if [ -n "$SINGLE_FILE" ]; then
 fi
 
 # ─────────────────────────────────────────────
-# Modo padrão (projetos)
+# Default mode (projects)
 # ─────────────────────────────────────────────
 
 if [ ! -d "$BACKUP_ROOT" ]; then
-    log_error "Diretório raiz de backups não encontrado: $BACKUP_ROOT"
+    log_error "Backup root directory not found: $BACKUP_ROOT"
     exit 1
 fi
 
-log_info "Iniciando sincronização de backups..."
-log_verbose "Raiz: $BACKUP_ROOT | Remoto: $RCLONE_REMOTE | Retenção: $RETENTION_DAYS dias"
+log_info "Starting backup synchronization..."
+log_verbose "Root: $BACKUP_ROOT | Remote: $RCLONE_REMOTE | Retention: $RETENTION_DAYS days"
 
 # ─────────────────────────────────────────────
-# Processamento por Projeto
+# Processing per Project
 # ─────────────────────────────────────────────
 
-# Loop por cada subdiretório em /opt/backups/
-# Usamos nullglob para evitar erro se a pasta estiver vazia
+# Loop through each subdirectory in the backup root
+# Using nullglob to avoid errors if the directory is empty
 shopt -s nullglob
 for project_path in "$BACKUP_ROOT"/*; do
-    # 1. Pula se não for um diretório
+    # Skip if not a directory
     [ -d "$project_path" ] || continue
-    
+
     PROJECT_NAME=$(basename "$project_path")
 
-    # 2. SEGURANÇA: Pula pastas que não são projetos de backup
-    # Ignora pastas ocultas (que começam com .) e pastas definidas em IGNORED_FOLDERS
+    # SAFETY: Skip folders that are not backup projects
+    # Ignores hidden folders (starting with .) and folders defined in IGNORED_FOLDERS
     if [[ "$PROJECT_NAME" == .* ]] || [[ " ${IGNORED_FOLDERS} " == *" ${PROJECT_NAME} "* ]]; then
-        log_verbose "   - Pulando pasta ignorada/reservada: $PROJECT_NAME"
+        log_verbose "   - Skipping ignored/reserved folder: $PROJECT_NAME"
         continue
     fi
-    
-    log_info "→ Processando projeto: $PROJECT_NAME"
+
+    log_info "→ Processing project: $PROJECT_NAME"
     STEP_START=$(date +%s)
 
-    # 1. Upload para o Drive (organizado por pasta de projeto)
-    # Tentativa de upload com retry simples para resiliência
+    # 1. Upload to Drive (organized by project folder)
     RCLONE_FLAGS=("--log-level" "$(rclone_log_level)" "--stats-one-line" "--stats" "10s" "--update" "--use-mmap" "--retries" "3")
     [ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
 
     if rclone copy "$project_path" "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/${PROJECT_NAME}" \
         "${RCLONE_FLAGS[@]}"; then
 
-        log_info "   ✓ Sincronizado com sucesso."
+        log_info "   ✓ Synchronized successfully."
 
-        # 2. Limpeza de backups antigos localmente (SÓ após upload bem-sucedido)
-        log_verbose "   Limpando arquivos locais com mais de $RETENTION_DAYS dias..."
+        # 2. Local cleanup of old backups (ONLY after successful upload)
+        log_verbose "   Cleaning local files older than $RETENTION_DAYS days..."
 
         DELETED_COUNT=$(find "$project_path" -maxdepth 1 -type f -mtime +"$RETENTION_DAYS" -print -delete 2>/dev/null | wc -l) || DELETED_COUNT=0
 
-        [ "$DELETED_COUNT" -gt 0 ] && log_info "   - Removidos $DELETED_COUNT arquivos antigos."
+        [ "$DELETED_COUNT" -gt 0 ] && log_info "   - Removed $DELETED_COUNT old files."
         TOTAL_DELETED=$((TOTAL_DELETED + DELETED_COUNT))
     else
-        log_warn "   ⚠ Falha na sincronização do projeto $PROJECT_NAME. Limpeza local IGNORADA."
+        log_warn "   ⚠ Sync failed for project $PROJECT_NAME. Local cleanup SKIPPED."
         UPLOAD_ERRORS=$((UPLOAD_ERRORS + 1))
     fi
-    
-    log_verbose "   Tempo do projeto: $(elapsed $STEP_START)s"
+
+    log_verbose "   Project time: $(elapsed $STEP_START)s"
 done
 shopt -u nullglob
 
 # ─────────────────────────────────────────────
-# Resumo Final
+# Final Summary
 # ─────────────────────────────────────────────
 
 TOTAL_DURATION=$(elapsed $OVERALL_START)
 STATUS=$( [ "$UPLOAD_ERRORS" -eq 0 ] && echo "SUCCESS" || echo "PARTIAL" )
 
 log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-log_info "✅ Sincronização concluída em ${TOTAL_DURATION}s"
+log_info "✅ Synchronization completed in ${TOTAL_DURATION}s"
 
-# Bloco de resumo para o log (sempre no final)
+# Summary block for the log (always at the end)
 {
     echo "════════════════════════════════════════════════"
-    echo "  RESUMO DA SINCRONIZAÇÃO — $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "  SYNC SUMMARY — $(date '+%Y-%m-%d %H:%M:%S')"
     echo "════════════════════════════════════════════════"
-    echo "  Status         : $STATUS"
-    echo "  Duração        : ${TOTAL_DURATION}s"
-    echo "  Destino Cloud  : ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/"
-    echo "  Projetos c/ Erro: $UPLOAD_ERRORS"
-    echo "  Arquivos Removidos (Local): $TOTAL_DELETED"
+    echo "  Status            : $STATUS"
+    echo "  Duration          : ${TOTAL_DURATION}s"
+    echo "  Cloud Destination : ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/"
+    echo "  Projects w/ Errors: $UPLOAD_ERRORS"
+    echo "  Files Removed (Local): $TOTAL_DELETED"
     echo "════════════════════════════════════════════════"
     echo ""
 } >> "$LOG_FILE"
 
-# Remove o trap de erro para saída limpa
+# Remove error trap for clean exit
 trap - EXIT
 
 [ "$UPLOAD_ERRORS" -gt 0 ] && exit 1 || exit 0
