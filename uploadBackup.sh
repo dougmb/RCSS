@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sincronização de Backups para Google Drive via rclone
-# Uso: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>]
+# Uso: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <arquivo>]
 # Este script percorre /opt/backups/<PROJETO> e sobe para o Drive.
 
 set -euo pipefail
@@ -14,14 +14,16 @@ SHOW_PROGRESS=0
 BACKUP_ROOT_OVERRIDE=""
 RCLONE_REMOTE_OVERRIDE=""
 DRIVE_DESTINATION_OVERRIDE=""
-while getopts ":vpo:r:d:" opt; do
+SINGLE_FILE=""
+while getopts ":vpo:r:d:a:" opt; do
     case $opt in
         v) VERBOSE=1 ;;
         p) SHOW_PROGRESS=1 ;;
         o) BACKUP_ROOT_OVERRIDE="$OPTARG" ;;
         r) RCLONE_REMOTE_OVERRIDE="$OPTARG" ;;
         d) DRIVE_DESTINATION_OVERRIDE="$OPTARG" ;;
-        *) echo "Uso: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>]"; exit 1 ;;
+        a) SINGLE_FILE="$OPTARG" ;;
+        *) echo "Uso: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <arquivo>]"; exit 1 ;;
     esac
 done
 
@@ -117,6 +119,36 @@ if ! command -v rclone &>/dev/null; then
     log_error "rclone não encontrado. Instale antes de continuar."
     exit 1
 fi
+
+# ─────────────────────────────────────────────
+# Modo arquivo avulso (-a)
+# ─────────────────────────────────────────────
+
+if [ -n "$SINGLE_FILE" ]; then
+    if [ ! -f "$SINGLE_FILE" ]; then
+        log_error "Arquivo não encontrado: $SINGLE_FILE"
+        exit 1
+    fi
+
+    log_info "Enviando arquivo avulso: $SINGLE_FILE"
+    RCLONE_FLAGS=("--log-level" "$(rclone_log_level)" "--retries" "3")
+    [ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
+
+    if rclone copy "$SINGLE_FILE" "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/" "${RCLONE_FLAGS[@]}"; then
+        log_info "✓ Arquivo enviado com sucesso."
+    else
+        log_error "Falha ao enviar $SINGLE_FILE"
+        trap - EXIT
+        exit 1
+    fi
+
+    trap - EXIT
+    exit 0
+fi
+
+# ─────────────────────────────────────────────
+# Modo padrão (projetos)
+# ─────────────────────────────────────────────
 
 if [ ! -d "$BACKUP_ROOT" ]; then
     log_error "Diretório raiz de backups não encontrado: $BACKUP_ROOT"

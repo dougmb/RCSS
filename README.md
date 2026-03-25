@@ -22,6 +22,7 @@ Automated system for multi-project backup management integrating local storage a
 - **Efficient Upload:** Uses `rclone copy --update` to save bandwidth.
 - **Local Cleanup:** Removes files from the local server that have exceeded `RETENTION_DAYS` (only after successful upload).
 - **Security:** Ignores hidden folders and administrative directories (configurable via `IGNORED_FOLDERS`).
+- **Single File Mode:** Use `-a <file>` to upload an individual file instead of scanning project directories.
 
 ### 2. `cleanRemoteBackups.sh` (Cloud Maintenance)
 
@@ -121,6 +122,9 @@ Add the lines below (adjust paths according to your installation):
 
   # Combine all overrides
   ./uploadBackup.sh -v -p -o /mnt/other/backups -r otherremote: -d OtherFolder
+
+  # Upload a single file to a specific folder on Drive
+  ./uploadBackup.sh -a /opt/RCSS/sync.log -d Logs
   ```
 
 - **Restore a backup interactively:**
