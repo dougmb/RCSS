@@ -57,7 +57,7 @@ sudo apt install rclone  # Debian/Ubuntu
 To ensure files go exactly to the desired folder, follow these steps:
 
 1. In the terminal, run: `rclone config`
-2. Type `n` for a new remote and name it `douglas`.
+2. Type `n` for a new remote and name it `user`.
 3. Choose the `drive` type (Google Drive).
 4. Leave `client_id` and `client_secret` blank.
 5. In scope (`scope`), choose `1` (Full access).
@@ -72,7 +72,7 @@ To ensure files go exactly to the desired folder, follow these steps:
 Edit the `backup.env` file in the same folder as the script to define:
 
 - `BACKUP_ROOT`: Where your local backups are located.
-- `RCLONE_REMOTE`: The name you configured (e.g., `douglas:`).
+- `RCLONE_REMOTE`: The name you configured (e.g., `user:`).
 - `DRIVE_DESTINATION`: Subfolder name on Drive.
 - `RETENTION_DAYS`: Retention on the local server.
 - `REMOTE_RETENTION_DAYS`: Retention in the cloud.
