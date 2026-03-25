@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Backup Synchronization to Google Drive via rclone
-# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>]
+# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>]
 # This script iterates through /opt/backups/<PROJECT> and uploads to Drive.
 
 set -euo pipefail
@@ -15,7 +15,8 @@ BACKUP_ROOT_OVERRIDE=""
 RCLONE_REMOTE_OVERRIDE=""
 DRIVE_DESTINATION_OVERRIDE=""
 SINGLE_FILE=""
-while getopts ":vpo:r:d:a:" opt; do
+IGNORED_FOLDERS_OVERRIDE=""
+while getopts ":vpo:r:d:a:i:" opt; do
     case $opt in
         v) VERBOSE=1 ;;
         p) SHOW_PROGRESS=1 ;;
@@ -23,7 +24,8 @@ while getopts ":vpo:r:d:a:" opt; do
         r) RCLONE_REMOTE_OVERRIDE="$OPTARG" ;;
         d) DRIVE_DESTINATION_OVERRIDE="$OPTARG" ;;
         a) SINGLE_FILE="$OPTARG" ;;
-        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>]"; exit 1 ;;
+        i) IGNORED_FOLDERS_OVERRIDE="$OPTARG" ;;
+        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>]"; exit 1 ;;
     esac
 done
 
@@ -67,6 +69,11 @@ LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/sync.log}"
 
 # Folders to ignore (loaded from .env or safe defaults)
 IGNORED_FOLDERS="${IGNORED_FOLDERS:-scripts config bin logs lost+found}"
+
+# Append CLI-specified folders to the ignore list
+if [ -n "$IGNORED_FOLDERS_OVERRIDE" ]; then
+    IGNORED_FOLDERS="$IGNORED_FOLDERS $IGNORED_FOLDERS_OVERRIDE"
+fi
 
 UPLOAD_ERRORS=0
 TOTAL_DELETED=0

@@ -4,7 +4,7 @@ Automated system for multi-project backup management integrating local storage a
 
 ## 📂 Structure Overview
 
-- **`uploadBackup.sh`**: Backs up all folders within `BACKUP_ROOT` to the cloud. Supports CLI overrides (`-o`, `-r`, `-d`).
+- **`uploadBackup.sh`**: Backs up all folders within `BACKUP_ROOT` to the cloud. Supports CLI overrides (`-o`, `-r`, `-d`, `-i`).
 - **`restoreBackup.sh`**: Interactive download of a selected backup from the cloud to the local server. Supports custom output path (`-o`).
 - **`cleanRemoteBackups.sh`**: Remote cleanup of backups older than `REMOTE_RETENTION_DAYS`.
 - **`backup.env`**: Configuration file with environment settings.
@@ -122,6 +122,10 @@ Add the lines below (adjust paths according to your installation):
 
   # Combine all overrides
   ./uploadBackup.sh -v -p -o /mnt/other/backups -r otherremote: -d OtherFolder
+
+  # Ignore specific folders at runtime
+  ./uploadBackup.sh -o /opt -i backups
+  ./uploadBackup.sh -o /opt -i "backups RCSS containerd"
 
   # Upload a single file to a specific folder on Drive
   ./uploadBackup.sh -a /opt/RCSS/sync.log -d Logs
