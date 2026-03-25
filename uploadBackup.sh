@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Backup Synchronization to Google Drive via rclone
-# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>]
+# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>]
 # This script iterates through /opt/backups/<PROJECT> and uploads to Drive.
 
 set -euo pipefail
@@ -16,7 +16,8 @@ RCLONE_REMOTE_OVERRIDE=""
 DRIVE_DESTINATION_OVERRIDE=""
 SINGLE_FILE=""
 IGNORED_FOLDERS_OVERRIDE=""
-while getopts ":vpo:r:d:a:i:" opt; do
+SKIP_DOTFILES_OVERRIDE=""
+while getopts ":vpo:r:d:a:i:s:" opt; do
     case $opt in
         v) VERBOSE=1 ;;
         p) SHOW_PROGRESS=1 ;;
@@ -25,7 +26,8 @@ while getopts ":vpo:r:d:a:i:" opt; do
         d) DRIVE_DESTINATION_OVERRIDE="$OPTARG" ;;
         a) SINGLE_FILE="$OPTARG" ;;
         i) IGNORED_FOLDERS_OVERRIDE="$OPTARG" ;;
-        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>]"; exit 1 ;;
+        s) SKIP_DOTFILES_OVERRIDE="$OPTARG" ;;
+        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>]"; exit 1 ;;
     esac
 done
 
@@ -73,6 +75,12 @@ IGNORED_FOLDERS="${IGNORED_FOLDERS:-scripts config bin logs lost+found}"
 # Append CLI-specified folders to the ignore list
 if [ -n "$IGNORED_FOLDERS_OVERRIDE" ]; then
     IGNORED_FOLDERS="$IGNORED_FOLDERS $IGNORED_FOLDERS_OVERRIDE"
+fi
+
+# Skip dotfiles/dotfolders (default: true)
+SKIP_DOTFILES="${SKIP_DOTFILES:-true}"
+if [ -n "$SKIP_DOTFILES_OVERRIDE" ]; then
+    SKIP_DOTFILES="$SKIP_DOTFILES_OVERRIDE"
 fi
 
 UPLOAD_ERRORS=0
@@ -139,6 +147,7 @@ if [ -n "$SINGLE_FILE" ]; then
     log_info "Uploading single file: $SINGLE_FILE"
     RCLONE_FLAGS=("--log-level" "$(rclone_log_level)" "--retries" "3")
     [ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
+    [ "$SKIP_DOTFILES" = "true" ] && RCLONE_FLAGS+=("--exclude" ".*" "--exclude" ".*/**")
 
     if rclone copy "$SINGLE_FILE" "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/" "${RCLONE_FLAGS[@]}"; then
         log_info "✓ File uploaded successfully."
@@ -190,6 +199,7 @@ for project_path in "$BACKUP_ROOT"/*; do
     # 1. Upload to Drive (organized by project folder)
     RCLONE_FLAGS=("--log-level" "$(rclone_log_level)" "--stats-one-line" "--stats" "10s" "--update" "--use-mmap" "--retries" "3")
     [ "$SHOW_PROGRESS" = "1" ] && RCLONE_FLAGS+=("-P")
+    [ "$SKIP_DOTFILES" = "true" ] && RCLONE_FLAGS+=("--exclude" ".*" "--exclude" ".*/**")
 
     if rclone copy "$project_path" "${RCLONE_REMOTE}/${DRIVE_DESTINATION}/${PROJECT_NAME}" \
         "${RCLONE_FLAGS[@]}"; then

@@ -78,6 +78,7 @@ Edit the `backup.env` file in the same folder as the script to define:
 - `REMOTE_RETENTION_DAYS`: Retention in the cloud.
 - `REMOTE_CLEANUP_SAFETY_DAYS`: Safety window for remote cleanup.
 - `IGNORED_FOLDERS`: List of folders (space-separated) to be ignored in the backup root.
+- `SKIP_DOTFILES`: If `true` (default), hidden files/folders (starting with `.`) are excluded from upload. Set to `false` to include them.
 
 ---
 
@@ -129,6 +130,9 @@ Add the lines below (adjust paths according to your installation):
 
   # Upload a single file to a specific folder on Drive
   ./uploadBackup.sh -a /opt/RCSS/sync.log -d Logs
+
+  # Include dotfiles in the upload (disabled by default)
+  ./uploadBackup.sh -v -p -s false
   ```
 
 - **Restore a backup interactively:**
@@ -159,3 +163,5 @@ Add the lines below (adjust paths according to your installation):
 ## 🔒 Security
 
 The script has a custom exclusion list via `IGNORED_FOLDERS` to avoid touching administrative folders like `scripts`, `logs`, `config`, etc. You can safely store your scripts as long as the folder name is in the ignored list.
+
+By default, hidden files and folders (starting with `.`) are excluded from uploads at all levels. This prevents sensitive files like `.env`, `.git/`, `.ssh/` from being uploaded to the cloud. This behavior is controlled by `SKIP_DOTFILES` in `backup.env` and can be toggled at runtime with `-s true|false`.
