@@ -29,7 +29,7 @@ chmod +x *.sh
 ```bash
 # Edit backup.env
 BACKUP_ROOT="/opt/backups"
-RCLONE_REMOTE="douglas:"
+RCLONE_REMOTE="account:"
 DRIVE_DESTINATION="Backups"
 RETENTION_DAYS=1
 REMOTE_RETENTION_DAYS=15
