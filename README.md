@@ -1,167 +1,139 @@
-# RcloneCloudSimpleScripts(RCSS) - Backup Synchronization
+# RCSS — Rclone Cloud Simple Scripts
 
-Automated system for multi-project backup management integrating local storage and Google Drive via **rclone**.
-
-## 📂 Structure Overview
-
-- **`uploadBackup.sh`**: Backs up all folders within `BACKUP_ROOT` to the cloud. Supports CLI overrides (`-o`, `-r`, `-d`, `-i`).
-- **`restoreBackup.sh`**: Interactive download of a selected backup from the cloud to the local server. Supports custom output path (`-o`).
-- **`cleanRemoteBackups.sh`**: Remote cleanup of backups older than `REMOTE_RETENTION_DAYS`.
-- **`backup.env`**: Configuration file with environment settings.
-- **`sync.log`**: Contains historical logs of script executions.
+Automated backup management for multiple projects: uploads to Google Drive via **rclone**, cleans old files locally and remotely.
 
 ---
 
-## 🛠️ Getting to Know the Scripts
-
-### 1. `uploadBackup.sh` (Main Synchronization)
-
-**What it does:** Iterates through the local backup directory and uploads new/changed files to the cloud.
-
-- **Automatic Detection:** Identifies subfolders in `/opt/backups/` as independent projects.
-- **Efficient Upload:** Uses `rclone copy --update` to save bandwidth.
-- **Local Cleanup:** Removes files from the local server that have exceeded `RETENTION_DAYS` (only after successful upload).
-- **Security:** Ignores hidden folders and administrative directories (configurable via `IGNORED_FOLDERS`).
-- **Single File Mode:** Use `-a <file>` to upload an individual file instead of scanning project directories.
-
-### 2. `cleanRemoteBackups.sh` (Cloud Maintenance)
-
-**What it does:** Manages Google Drive space by removing old backups.
-
-- **Independent:** Runs separately from the upload for greater control.
-- **Safety Lock:** **NEVER** deletes files if it detects that backups have stopped being made (based on `REMOTE_CLEANUP_SAFETY_DAYS`).
-- **Simulation:** Allows running with the `-d` (dry-run) flag to see what would be deleted without actually deleting anything.
-
-### 3. `restoreBackup.sh` (Backup Download)
-
-**What it does:** Interactive interface to download backups from the cloud to the local server.
-
-- **Navigation:** Lists projects and files directly from Google Drive.
-- **Selective Download:** Allows choosing exactly which project and file to restore.
-- **Custom Output:** Use `-o <path>` to restore to a specific directory instead of the default `BACKUP_ROOT/<project>`.
-
----
-
-## 🚀 Step-by-Step Configuration
-
-### 1. Install rclone
-
-Ensure rclone is installed on the server:
+## Quick Start
 
 ```bash
-sudo apt install rclone  # Debian/Ubuntu
+# 1. Install rclone
+sudo apt install rclone
+
+# 2. Configure a Google Drive remote
+rclone config   # type: drive → set root_folder_id to your Drive folder ID
+
+# 3. Edit backup.env with your settings (BACKUP_ROOT and RCLONE_REMOTE are required)
+
+# 4. Make scripts executable
+chmod +x *.sh
+
+# 5. Run
+./uploadBackup.sh -p
 ```
 
-### 2. Configure Remote with a Specific Folder
-
-To ensure files go exactly to the desired folder, follow these steps:
-
-1. In the terminal, run: `rclone config`
-2. Type `n` for a new remote and name it `user`.
-3. Choose the `drive` type (Google Drive).
-4. Leave `client_id` and `client_secret` blank.
-5. In scope (`scope`), choose `1` (Full access).
-6. **Important:** When asked for `root_folder_id`, paste your folder ID.
-7. Leave `service_account_file` blank.
-8. In `Edit advanced config`, type `n`.
-9. In `Use auto config`, type `y` if on your local PC or `n` if on a remote server (via SSH).
-10. Confirm everything is correct with `y`.
-
-### 3. Configure the `backup.env` file
-
-Edit the `backup.env` file in the same folder as the script to define:
-
-- `BACKUP_ROOT`: Where your local backups are located.
-- `RCLONE_REMOTE`: The name you configured (e.g., `user:`).
-- `DRIVE_DESTINATION`: Subfolder name on Drive.
-- `RETENTION_DAYS`: Retention on the local server.
-- `REMOTE_RETENTION_DAYS`: Retention in the cloud.
-- `REMOTE_CLEANUP_SAFETY_DAYS`: Safety window for remote cleanup.
-- `IGNORED_FOLDERS`: List of folders (space-separated) to be ignored in the backup root.
-- `SKIP_DOTFILES`: If `true` (default), hidden files/folders (starting with `.`) are excluded from upload. Set to `false` to include them.
-
 ---
 
-## 📅 Scheduling (Cron)
-
-To automate the system, we recommend scheduling Upload and Cleanup at different times.
-
-Edit your crontab:
+## Complete Setup with Cron
 
 ```bash
-crontab -e
-```
+# Edit backup.env
+BACKUP_ROOT="/opt/backups"
+RCLONE_REMOTE="douglas:"
+DRIVE_DESTINATION="Backups"
+RETENTION_DAYS=1
+REMOTE_RETENTION_DAYS=15
 
-Add the lines below (adjust paths according to your installation):
+# Make executable
+chmod +x /opt/backup/*.sh
 
-```bash
-# 1. Sync backups to the cloud (Every day at 03:00)
+# Schedule (crontab -e)
+# Upload daily at 03:00
 0 3 * * * /opt/backup/uploadBackup.sh >> /opt/backup/sync.log 2>&1
 
-# 2. Clean old backups in the cloud (Every Sunday at 05:00)
+# Clean Drive every Sunday at 05:00
 0 5 * * 0 /opt/backup/cleanRemoteBackups.sh >> /opt/backup/sync.log 2>&1
 ```
 
 ---
 
-## 📋 Useful Commands
+## Scripts
 
-- **Run upload with a progress bar:**
-
-  ```bash
-  ./uploadBackup.sh -p -v
-  ```
-
-- **Run upload overriding backup root, remote, or destination:**
-
-  ```bash
-  # Override backup source directory (origin)
-  ./uploadBackup.sh -o /mnt/other/backups
-
-  # Override rclone remote and drive destination
-  ./uploadBackup.sh -r otherremote: -d OtherFolder
-
-  # Combine all overrides
-  ./uploadBackup.sh -v -p -o /mnt/other/backups -r otherremote: -d OtherFolder
-
-  # Ignore specific folders at runtime
-  ./uploadBackup.sh -o /opt -i backups
-  ./uploadBackup.sh -o /opt -i "backups RCSS containerd"
-
-  # Upload a single file to a specific folder on Drive
-  ./uploadBackup.sh -a /opt/RCSS/sync.log -d Logs
-
-  # Include dotfiles in the upload (disabled by default)
-  ./uploadBackup.sh -v -p -s false
-  ```
-
-- **Restore a backup interactively:**
-
-  ```bash
-  ./restoreBackup.sh -p -v
-  ```
-
-- **Restore a backup to a custom directory:**
-
-  ```bash
-  ./restoreBackup.sh -p -v -o /tmp/my-restore
-  ```
-
-- **Simulate cloud cleanup (see what would be deleted):**
-
-  ```bash
-  ./cleanRemoteBackups.sh -d -v
-  ```
-
-- **Check logs:**
-  ```bash
-  tail -f sync.log
-  ```
+| Script | Description |
+|---|---|
+| `uploadBackup.sh` | Uploads all project folders in `BACKUP_ROOT` to the cloud |
+| `cleanRemoteBackups.sh` | Deletes old backups from Google Drive |
+| `restoreBackup.sh` | Interactive download of a backup from the cloud |
+| `backup.env` | Shared configuration file |
 
 ---
 
-## 🔒 Security
+## Configuration (`backup.env`)
 
-The script has a custom exclusion list via `IGNORED_FOLDERS` to avoid touching administrative folders like `scripts`, `logs`, `config`, etc. You can safely store your scripts as long as the folder name is in the ignored list.
+**Required**
 
-By default, hidden files and folders (starting with `.`) are excluded from uploads at all levels. This prevents sensitive files like `.env`, `.git/`, `.ssh/` from being uploaded to the cloud. This behavior is controlled by `SKIP_DOTFILES` in `backup.env` and can be toggled at runtime with `-s true|false`.
+| Variable | Description |
+|---|---|
+| `BACKUP_ROOT` | Local directory containing project folders (e.g. `/opt/backups`) |
+| `RCLONE_REMOTE` | rclone remote name (e.g. `douglas:`) |
+
+**Retention**
+
+| Variable | Default | Description |
+|---|---|---|
+| `RETENTION_DAYS` | `1` | Days to keep local backups before deletion |
+| `REMOTE_RETENTION_DAYS` | `15` | Days to keep backups on Drive |
+| `DELETE_AFTER_UPLOAD` | `false` | Delete local files immediately after upload (overrides `RETENTION_DAYS`) |
+
+**Cloud**
+
+| Variable | Default | Description |
+|---|---|---|
+| `DRIVE_DESTINATION` | `Backups` | Destination folder on Google Drive |
+| `REMOTE_CLEANUP_SAFETY_DAYS` | `2` | Block remote cleanup if no recent backup is found within this many days |
+
+**Upload Behavior**
+
+| Variable | Default | Description |
+|---|---|---|
+| `IGNORED_FOLDERS` | `scripts config bin logs lost+found` | Folders inside `BACKUP_ROOT` to skip |
+| `SKIP_DOTFILES` | `true` | Exclude hidden files/folders (`.env`, `.git/`, etc.) from upload |
+
+---
+
+## `uploadBackup.sh` Flags
+
+| Flag | Description |
+|---|---|
+| `-p` | Show progress bar |
+| `-v` | Verbose output |
+| `-D <true\|false>` | Override `DELETE_AFTER_UPLOAD` |
+| `-s <true\|false>` | Override `SKIP_DOTFILES` |
+| `-o <path>` | Override `BACKUP_ROOT` |
+| `-r <remote>` | Override `RCLONE_REMOTE` |
+| `-d <folder>` | Override `DRIVE_DESTINATION` |
+| `-i <folders>` | Extra folders to ignore (appended to `IGNORED_FOLDERS`) |
+| `-a <file>` | Upload a single file instead of scanning project folders |
+
+---
+
+## Usage Examples
+
+```bash
+# Upload with progress bar
+./uploadBackup.sh -p
+
+# Delete local files immediately after upload
+./uploadBackup.sh -D true
+
+# Upload a single file to a specific Drive folder
+./uploadBackup.sh -a /opt/RCSS/sync.log -d Logs
+
+# Override source, remote, and destination
+./uploadBackup.sh -o /mnt/other/backups -r otherremote: -d OtherFolder
+
+# Include dotfiles in the upload
+./uploadBackup.sh -s false
+
+# Restore a backup interactively
+./restoreBackup.sh -p -v
+
+# Restore to a custom directory
+./restoreBackup.sh -o /tmp/my-restore
+
+# Simulate cloud cleanup (dry-run)
+./cleanRemoteBackups.sh -d -v
+
+# Check logs
+tail -f sync.log
+```

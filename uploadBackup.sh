@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Backup Synchronization to Google Drive via rclone
-# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>]
+# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>] [-D <true|false>]
 # This script iterates through /opt/backups/<PROJECT> and uploads to Drive.
 
 set -euo pipefail
@@ -17,7 +17,8 @@ DRIVE_DESTINATION_OVERRIDE=""
 SINGLE_FILE=""
 IGNORED_FOLDERS_OVERRIDE=""
 SKIP_DOTFILES_OVERRIDE=""
-while getopts ":vpo:r:d:a:i:s:" opt; do
+DELETE_AFTER_UPLOAD_OVERRIDE=""
+while getopts ":vpo:r:d:a:i:s:D:" opt; do
     case $opt in
         v) VERBOSE=1 ;;
         p) SHOW_PROGRESS=1 ;;
@@ -27,7 +28,8 @@ while getopts ":vpo:r:d:a:i:s:" opt; do
         a) SINGLE_FILE="$OPTARG" ;;
         i) IGNORED_FOLDERS_OVERRIDE="$OPTARG" ;;
         s) SKIP_DOTFILES_OVERRIDE="$OPTARG" ;;
-        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>]"; exit 1 ;;
+        D) DELETE_AFTER_UPLOAD_OVERRIDE="$OPTARG" ;;
+        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>] [-D <true|false>]"; exit 1 ;;
     esac
 done
 
@@ -83,8 +85,15 @@ if [ -n "$SKIP_DOTFILES_OVERRIDE" ]; then
     SKIP_DOTFILES="$SKIP_DOTFILES_OVERRIDE"
 fi
 
+# Delete local files immediately after successful upload (default: false)
+DELETE_AFTER_UPLOAD="${DELETE_AFTER_UPLOAD:-false}"
+if [ -n "$DELETE_AFTER_UPLOAD_OVERRIDE" ]; then
+    DELETE_AFTER_UPLOAD="$DELETE_AFTER_UPLOAD_OVERRIDE"
+fi
+
 UPLOAD_ERRORS=0
 TOTAL_DELETED=0
+DELETE_ERRORS=0
 OVERALL_START=$(date +%s)
 
 # ─────────────────────────────────────────────
@@ -171,7 +180,7 @@ if [ ! -d "$BACKUP_ROOT" ]; then
 fi
 
 log_info "Starting backup synchronization..."
-log_verbose "Root: $BACKUP_ROOT | Remote: $RCLONE_REMOTE | Retention: $RETENTION_DAYS days"
+log_info "Settings: root=$BACKUP_ROOT | remote=$RCLONE_REMOTE | retention=${RETENTION_DAYS}d | skip_dotfiles=$SKIP_DOTFILES | delete_after_upload=$DELETE_AFTER_UPLOAD"
 
 # ─────────────────────────────────────────────
 # Processing per Project
@@ -206,12 +215,32 @@ for project_path in "$BACKUP_ROOT"/*; do
 
         log_info "   ✓ Synchronized successfully."
 
-        # 2. Local cleanup of old backups (ONLY after successful upload)
-        log_verbose "   Cleaning local files older than $RETENTION_DAYS days..."
+        # 2. Local cleanup (ONLY after successful upload)
+        if [ "$DELETE_AFTER_UPLOAD" = "true" ]; then
+            log_verbose "   Deleting all uploaded local files..."
+            DELETED_COUNT=0
+            while IFS= read -r -d '' file; do
+                if rm -- "$file"; then
+                    DELETED_COUNT=$((DELETED_COUNT + 1))
+                else
+                    log_warn "   ⚠ Could not delete: $file"
+                    DELETE_ERRORS=$((DELETE_ERRORS + 1))
+                fi
+            done < <(find "$project_path" -maxdepth 1 -type f -print0)
+        else
+            log_verbose "   Cleaning local files older than $RETENTION_DAYS days..."
+            DELETED_COUNT=0
+            while IFS= read -r -d '' file; do
+                if rm -- "$file"; then
+                    DELETED_COUNT=$((DELETED_COUNT + 1))
+                else
+                    log_warn "   ⚠ Could not delete: $file"
+                    DELETE_ERRORS=$((DELETE_ERRORS + 1))
+                fi
+            done < <(find "$project_path" -maxdepth 1 -type f -mtime +"$RETENTION_DAYS" -print0)
+        fi
 
-        DELETED_COUNT=$(find "$project_path" -maxdepth 1 -type f -mtime +"$RETENTION_DAYS" -print -delete 2>/dev/null | wc -l) || DELETED_COUNT=0
-
-        [ "$DELETED_COUNT" -gt 0 ] && log_info "   - Removed $DELETED_COUNT old files."
+        [ "$DELETED_COUNT" -gt 0 ] && log_info "   - Removed $DELETED_COUNT local files."
         TOTAL_DELETED=$((TOTAL_DELETED + DELETED_COUNT))
     else
         log_warn "   ⚠ Sync failed for project $PROJECT_NAME. Local cleanup SKIPPED."
@@ -242,6 +271,11 @@ log_info "✅ Synchronization completed in ${TOTAL_DURATION}s"
     echo "  Cloud Destination : ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/"
     echo "  Projects w/ Errors: $UPLOAD_ERRORS"
     echo "  Files Removed (Local): $TOTAL_DELETED"
+    echo "  Delete Errors     : $DELETE_ERRORS"
+    echo "  --- Flags ---"
+    echo "  skip_dotfiles     : $SKIP_DOTFILES"
+    echo "  delete_after_upload: $DELETE_AFTER_UPLOAD"
+    echo "  retention_days    : $RETENTION_DAYS"
     echo "════════════════════════════════════════════════"
     echo ""
 } >> "$LOG_FILE"
