@@ -86,7 +86,7 @@ chmod +x /opt/backup/*.sh
 | Variable | Default | Description |
 |---|---|---|
 | `IGNORED_FOLDERS` | `scripts config bin logs lost+found` | Folders inside `BACKUP_ROOT` to skip |
-| `SKIP_DOTFILES` | `true` | Exclude hidden files/folders (`.env`, `.git/`, etc.) from upload |
+| `SKIP_DOTFILES` | `false` | Exclude hidden files/folders (`.env`, `.git/`, etc.) from upload |
 
 ---
 
@@ -96,8 +96,8 @@ chmod +x /opt/backup/*.sh
 |---|---|
 | `-p` | Show progress bar |
 | `-v` | Verbose output |
-| `-D <true\|false>` | Override `DELETE_AFTER_UPLOAD` |
-| `-s <true\|false>` | Override `SKIP_DOTFILES` |
+| `-D` | Enable `DELETE_AFTER_UPLOAD` (default: off) |
+| `-s` | Enable `SKIP_DOTFILES` (default: off) |
 | `-o <path>` | Override `BACKUP_ROOT` |
 | `-r <remote>` | Override `RCLONE_REMOTE` |
 | `-d <folder>` | Override `DRIVE_DESTINATION` |
@@ -113,7 +113,7 @@ chmod +x /opt/backup/*.sh
 ./uploadBackup.sh -p
 
 # Delete local files immediately after upload
-./uploadBackup.sh -D true
+./uploadBackup.sh -D
 
 # Upload a single file to a specific Drive folder
 ./uploadBackup.sh -a /opt/RCSS/sync.log -d Logs
@@ -121,8 +121,8 @@ chmod +x /opt/backup/*.sh
 # Override source, remote, and destination
 ./uploadBackup.sh -o /mnt/other/backups -r otherremote: -d OtherFolder
 
-# Include dotfiles in the upload
-./uploadBackup.sh -s false
+# Exclude dotfiles from upload
+./uploadBackup.sh -s
 
 # Restore a backup interactively
 ./restoreBackup.sh -p -v

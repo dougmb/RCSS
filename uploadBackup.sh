@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Backup Synchronization to Google Drive via rclone
-# Usage: ./uploadBackup.sh [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>] [-D <true|false>]
+# Usage: ./uploadBackup.sh [-v] [-p] [-s] [-D] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>]
 # This script iterates through /opt/backups/<PROJECT> and uploads to Drive.
 
 set -euo pipefail
@@ -16,20 +16,20 @@ RCLONE_REMOTE_OVERRIDE=""
 DRIVE_DESTINATION_OVERRIDE=""
 SINGLE_FILE=""
 IGNORED_FOLDERS_OVERRIDE=""
-SKIP_DOTFILES_OVERRIDE=""
-DELETE_AFTER_UPLOAD_OVERRIDE=""
-while getopts ":vpo:r:d:a:i:s:D:" opt; do
+SKIP_DOTFILES_FLAG=0
+DELETE_AFTER_UPLOAD_FLAG=0
+while getopts ":vpsDo:r:d:a:i:" opt; do
     case $opt in
         v) VERBOSE=1 ;;
         p) SHOW_PROGRESS=1 ;;
+        s) SKIP_DOTFILES_FLAG=1 ;;
+        D) DELETE_AFTER_UPLOAD_FLAG=1 ;;
         o) BACKUP_ROOT_OVERRIDE="$OPTARG" ;;
         r) RCLONE_REMOTE_OVERRIDE="$OPTARG" ;;
         d) DRIVE_DESTINATION_OVERRIDE="$OPTARG" ;;
         a) SINGLE_FILE="$OPTARG" ;;
         i) IGNORED_FOLDERS_OVERRIDE="$OPTARG" ;;
-        s) SKIP_DOTFILES_OVERRIDE="$OPTARG" ;;
-        D) DELETE_AFTER_UPLOAD_OVERRIDE="$OPTARG" ;;
-        *) echo "Usage: $0 [-v] [-p] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>] [-s <true|false>] [-D <true|false>]"; exit 1 ;;
+        *) echo "Usage: $0 [-v] [-p] [-s] [-D] [-o <origin>] [-r <rclone_remote>] [-d <drive_destination>] [-a <file>] [-i <ignored_folders>]"; exit 1 ;;
     esac
 done
 
@@ -79,17 +79,13 @@ if [ -n "$IGNORED_FOLDERS_OVERRIDE" ]; then
     IGNORED_FOLDERS="$IGNORED_FOLDERS $IGNORED_FOLDERS_OVERRIDE"
 fi
 
-# Skip dotfiles/dotfolders (default: true)
-SKIP_DOTFILES="${SKIP_DOTFILES:-true}"
-if [ -n "$SKIP_DOTFILES_OVERRIDE" ]; then
-    SKIP_DOTFILES="$SKIP_DOTFILES_OVERRIDE"
-fi
+# Skip dotfiles/dotfolders (default: false; -s flag sets to true)
+SKIP_DOTFILES="${SKIP_DOTFILES:-false}"
+[ "$SKIP_DOTFILES_FLAG" = "1" ] && SKIP_DOTFILES="true"
 
-# Delete local files immediately after successful upload (default: false)
+# Delete local files immediately after successful upload (default: false; -D flag sets to true)
 DELETE_AFTER_UPLOAD="${DELETE_AFTER_UPLOAD:-false}"
-if [ -n "$DELETE_AFTER_UPLOAD_OVERRIDE" ]; then
-    DELETE_AFTER_UPLOAD="$DELETE_AFTER_UPLOAD_OVERRIDE"
-fi
+[ "$DELETE_AFTER_UPLOAD_FLAG" = "1" ] && DELETE_AFTER_UPLOAD="true"
 
 UPLOAD_ERRORS=0
 TOTAL_DELETED=0
