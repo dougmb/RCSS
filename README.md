@@ -1,7 +1,6 @@
 # RCSS — Rclone Cloud Simple Scripts
 
-Automated backup management for multiple projects: uploads to Google Drive via **rclone**, cleans old files locally and remotely.
-
+Automated backup management for multiple projects: uploads to CLOUD services suported by the **rclone**, and other funcions:
 ---
 
 ## Quick Start
@@ -137,3 +136,7 @@ chmod +x /opt/backup/*.sh
 # Check logs
 tail -f sync.log
 ```
+
+
+Built on top of [rclone](https://rclone.org) — the open source cloud storage manager.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q61UQM6J)
