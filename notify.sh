@@ -57,28 +57,44 @@ send_error_email() {
         return 0
     fi
 
-    local from="${NOTIFY_EMAIL_FROM:-$NOTIFY_EMAIL_TO}"
+    # NOTIFY_EMAIL_TO takes one or more addresses, separated by comma and/or space.
+    # Unquoted on purpose: this is where the list is split into recipients.
+    # shellcheck disable=SC2206
+    local recipients=(${NOTIFY_EMAIL_TO//,/ })
+    if [ "${#recipients[@]}" -eq 0 ]; then
+        log_warn "NOTIFY_EMAIL_TO has no valid address. E-mail notification skipped."
+        return 0
+    fi
+
+    local to_header
+    printf -v to_header '%s, ' "${recipients[@]}"
+    to_header="${to_header%, }"
+
+    local from="${NOTIFY_EMAIL_FROM:-${recipients[0]}}"
     local prefix="${NOTIFY_SUBJECT_PREFIX:-[RCSS]}"
     [ "${DRY_RUN:-0}" = "1" ] && prefix="$prefix [DRY-RUN]"
     local port="${SMTP_PORT:-587}"
 
     local message
     message=$(printf 'From: %s\nTo: %s\nSubject: %s %s\nDate: %s\n\n%s\n' \
-        "$from" "$NOTIFY_EMAIL_TO" "$prefix" "$subject" "$(date -R)" "$body")
+        "$from" "$to_header" "$prefix" "$subject" "$(date -R)" "$body")
 
     local curl_flags=(
         --silent --show-error
         --url "smtp://${SMTP_HOST}:${port}"
         --ssl-reqd
         --mail-from "$from"
-        --mail-rcpt "$NOTIFY_EMAIL_TO"
         --upload-file -
     )
+    local rcpt
+    for rcpt in "${recipients[@]}"; do
+        curl_flags+=(--mail-rcpt "$rcpt")
+    done
     [ -n "${SMTP_USER:-}" ] && curl_flags+=(--user "${SMTP_USER}:${SMTP_PASSWORD:-}")
 
     if printf '%s' "$message" | curl "${curl_flags[@]}" >/dev/null 2>&1; then
-        log_info "E-mail notification sent to $NOTIFY_EMAIL_TO"
+        log_info "E-mail notification sent to $to_header"
     else
-        log_warn "Failed to send e-mail notification to $NOTIFY_EMAIL_TO (check SMTP_* settings in backup.env)."
+        log_warn "Failed to send e-mail notification to $to_header (check SMTP_* settings in backup.env)."
     fi
 }

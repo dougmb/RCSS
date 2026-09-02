@@ -149,8 +149,8 @@ Nothing is ever deleted when the upload fails, and `-n` (dry-run) deletes nothin
 
 | Variable | Default | Description |
 |---|---|---|
-| `NOTIFY_EMAIL_TO` | *(empty)* | Address that receives error alerts. **Empty disables notifications entirely** |
-| `NOTIFY_EMAIL_FROM` | `NOTIFY_EMAIL_TO` | Sender address |
+| `NOTIFY_EMAIL_TO` | *(empty)* | Address(es) that receive error alerts — one or more, separated by comma and/or space. **Empty disables notifications entirely** |
+| `NOTIFY_EMAIL_FROM` | first `NOTIFY_EMAIL_TO` | Sender address |
 | `NOTIFY_SUBJECT_PREFIX` | `[RCSS]` | Prefix prepended to the e-mail subject |
 | `SMTP_HOST` | *(empty)* | SMTP server (e.g. `smtp.gmail.com`) |
 | `SMTP_PORT` | `587` | SMTP port (`587` = STARTTLS) |
@@ -171,7 +171,7 @@ Sending an alert never interrupts the backup: any SMTP problem is only logged as
 
 ```bash
 # backup.env (on the server only — never commit these values)
-NOTIFY_EMAIL_TO="you@example.com"
+NOTIFY_EMAIL_TO="you@example.com, ops@example.com"   # one or more
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
 SMTP_USER="you@gmail.com"
