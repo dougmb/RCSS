@@ -25,12 +25,16 @@ notify_log_tail() {
 # Standard alert body: identification header + the details passed in.
 # Usage: notify_body "<details>"
 notify_body() {
-    printf 'Host      : %s\nScript    : %s\nTimestamp : %s\nLog file  : %s\n\n%s\n' \
+    printf 'Host      : %s\nScript    : %s\nTimestamp : %s\nLog file  : %s\n' \
         "$(notify_host)" \
         "${SCRIPT_NAME:-unknown}" \
         "$(date '+%Y-%m-%d %H:%M:%S')" \
-        "${LOG_FILE:-n/a}" \
-        "$1"
+        "${LOG_FILE:-n/a}"
+
+    # Makes it obvious that an alert came from a test run, not from production
+    [ "${DRY_RUN:-0}" = "1" ] && printf 'Mode      : DRY-RUN (nothing was uploaded or deleted)\n'
+
+    printf '\n%s\n' "$1"
 }
 
 # Sends an error alert by e-mail via SMTP (curl).
@@ -55,6 +59,7 @@ send_error_email() {
 
     local from="${NOTIFY_EMAIL_FROM:-$NOTIFY_EMAIL_TO}"
     local prefix="${NOTIFY_SUBJECT_PREFIX:-[RCSS]}"
+    [ "${DRY_RUN:-0}" = "1" ] && prefix="$prefix [DRY-RUN]"
     local port="${SMTP_PORT:-587}"
 
     local message
