@@ -1,0 +1,6 @@
+# Runtime logs — they contain real project/server names, keep them out of git.
+sync.log
+*.log
+
+# Local-only overrides
+*.local

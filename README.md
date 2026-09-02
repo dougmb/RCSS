@@ -53,6 +53,7 @@ chmod +x /opt/backup/*.sh
 | `uploadBackup.sh` | Uploads all project folders in `BACKUP_ROOT` to the cloud |
 | `cleanRemoteBackups.sh` | Deletes old backups from Google Drive |
 | `restoreBackup.sh` | Interactive download of a backup from the cloud |
+| `notify.sh` | Shared helper that sends error alerts by e-mail (sourced by the scripts above) |
 | `backup.env` | Shared configuration file |
 
 ---
@@ -87,6 +88,50 @@ chmod +x /opt/backup/*.sh
 |---|---|---|
 | `IGNORED_FOLDERS` | `scripts config bin logs lost+found` | Folders inside `BACKUP_ROOT` to skip |
 | `SKIP_DOTFILES` | `false` | Exclude hidden files/folders (`.env`, `.git/`, etc.) from upload |
+
+**Notifications** (optional — requires `curl`)
+
+| Variable | Default | Description |
+|---|---|---|
+| `NOTIFY_EMAIL_TO` | *(empty)* | Address that receives error alerts. **Empty disables notifications entirely** |
+| `NOTIFY_EMAIL_FROM` | `NOTIFY_EMAIL_TO` | Sender address |
+| `NOTIFY_SUBJECT_PREFIX` | `[RCSS]` | Prefix prepended to the e-mail subject |
+| `SMTP_HOST` | *(empty)* | SMTP server (e.g. `smtp.gmail.com`) |
+| `SMTP_PORT` | `587` | SMTP port (`587` = STARTTLS) |
+| `SMTP_USER` | *(empty)* | SMTP user; leave empty for relays without authentication |
+| `SMTP_PASSWORD` | *(empty)* | SMTP password (for Gmail, use an **app password**) |
+
+> ⚠️ **Security:** `backup.env` is tracked by git. Never commit real credentials —
+> fill these values only in the local copy on each server, after a `git pull`.
+
+---
+
+## Error Notifications
+
+When `NOTIFY_EMAIL_TO` and `SMTP_HOST` are set, an e-mail alert is sent on failure.
+Sending an alert never interrupts the backup: any SMTP problem is only logged as a warning.
+
+```bash
+# backup.env (on the server only — never commit these values)
+NOTIFY_EMAIL_TO="you@example.com"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="you@gmail.com"
+SMTP_PASSWORD="your-app-password"
+```
+
+Alerts are sent when:
+
+| Situation | Script |
+|---|---|
+| One or more projects failed to sync (single summary e-mail per run, listing the failed projects) | `uploadBackup.sh` |
+| Single file upload (`-a`) failed | `uploadBackup.sh` |
+| Unexpected termination (rclone missing, `BACKUP_ROOT` not found, etc.) | both |
+| Safety abort — no recent backup found on the cloud | `cleanRemoteBackups.sh` |
+| `rclone delete` failed during cloud cleanup | `cleanRemoteBackups.sh` |
+
+Every alert includes the hostname, the script name, the timestamp and the last lines of the log,
+so it is clear which server raised it.
 
 ---
 

@@ -25,6 +25,7 @@ done
 # ─────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 ENV_FILE="$SCRIPT_DIR/backup.env"
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -63,6 +64,33 @@ log_verbose() {
     fi
 }
 
+# E-mail notifications (optional, configured in backup.env).
+# Sourced after the log_* helpers because notify.sh relies on them.
+if [ -f "$SCRIPT_DIR/notify.sh" ]; then
+    # shellcheck source=/dev/null
+    source "$SCRIPT_DIR/notify.sh"
+else
+    log_warn "notify.sh not found. E-mail notifications disabled."
+    send_error_email() { :; }
+    notify_host()     { echo "${HOSTNAME:-$(uname -n)}"; }
+    notify_body()     { echo "$1"; }
+    notify_log_tail() { :; }
+fi
+
+# Trap for unexpected errors
+cleanup_on_error() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        log_error "Script terminated unexpectedly with exit code $exit_code"
+        send_error_email "$(notify_host): remote cleanup FAILED (exit $exit_code)" \
+            "$(notify_body "The remote cleanup script terminated unexpectedly with exit code $exit_code.
+
+Last log lines:
+$(notify_log_tail 30)")"
+    fi
+}
+trap cleanup_on_error EXIT
+
 # ─────────────────────────────────────────────
 # Safety Check
 # ─────────────────────────────────────────────
@@ -80,6 +108,15 @@ else
     if [ -z "$RECENT_FILES" ]; then
         log_error "⚠️ SAFETY: No recent backups found on Drive in the last $REMOTE_CLEANUP_SAFETY_DAYS days!"
         log_error "Cleanup was ABORTED to preserve existing history. Check if the backup script is running."
+        send_error_email "$(notify_host): remote cleanup ABORTED (no recent backups)" \
+            "$(notify_body "SAFETY ABORT: no backup newer than $REMOTE_CLEANUP_SAFETY_DAYS day(s) was found at $REMOTE_PATH.
+
+The cleanup was aborted to preserve the existing history, but this most likely
+means the upload script has stopped working — please check it.
+
+Last log lines:
+$(notify_log_tail 20)")"
+        trap - EXIT
         exit 1
     fi
     log_verbose "   ✓ Recent backup detected. Proceeding..."
@@ -108,7 +145,15 @@ if rclone delete "$REMOTE_PATH" "${RCLONE_FLAGS[@]}"; then
     [ "$DRY_RUN" = "1" ] && log_info "Simulation completed. No files were deleted." || log_info "Cleanup completed successfully."
 else
     log_error "Error executing Drive cleanup."
+    send_error_email "$(notify_host): remote cleanup FAILED" \
+        "$(notify_body "rclone delete failed for: $REMOTE_PATH
+Criteria: files older than $REMOTE_RETENTION_DAYS days.
+
+Last log lines:
+$(notify_log_tail 20)")"
+    trap - EXIT
     exit 1
 fi
 
+trap - EXIT
 exit 0

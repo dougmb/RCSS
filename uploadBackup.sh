@@ -38,6 +38,7 @@ done
 # ─────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 ENV_FILE="$SCRIPT_DIR/backup.env"
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -90,6 +91,7 @@ DELETE_AFTER_UPLOAD="${DELETE_AFTER_UPLOAD:-false}"
 UPLOAD_ERRORS=0
 TOTAL_DELETED=0
 DELETE_ERRORS=0
+FAILED_PROJECTS=()
 OVERALL_START=$(date +%s)
 
 # ─────────────────────────────────────────────
@@ -121,11 +123,29 @@ rclone_log_level() {
     [ "$VERBOSE" = "1" ] && echo "DEBUG" || echo "NOTICE"
 }
 
+# E-mail notifications (optional, configured in backup.env).
+# Sourced after the log_* helpers because notify.sh relies on them.
+if [ -f "$SCRIPT_DIR/notify.sh" ]; then
+    # shellcheck source=/dev/null
+    source "$SCRIPT_DIR/notify.sh"
+else
+    log_warn "notify.sh not found. E-mail notifications disabled."
+    send_error_email() { :; }
+    notify_host()     { echo "${HOSTNAME:-$(uname -n)}"; }
+    notify_body()     { echo "$1"; }
+    notify_log_tail() { :; }
+fi
+
 # Trap for unexpected errors
 cleanup_on_error() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
         log_error "Script terminated unexpectedly with exit code $exit_code"
+        send_error_email "$(notify_host): backup upload FAILED (exit $exit_code)" \
+            "$(notify_body "The upload script terminated unexpectedly with exit code $exit_code.
+
+Last log lines:
+$(notify_log_tail 30)")"
     fi
 }
 trap cleanup_on_error EXIT
@@ -158,6 +178,12 @@ if [ -n "$SINGLE_FILE" ]; then
         log_info "✓ File uploaded successfully."
     else
         log_error "Failed to upload $SINGLE_FILE"
+        send_error_email "$(notify_host): single file upload FAILED" \
+            "$(notify_body "Failed to upload single file: $SINGLE_FILE
+Destination: ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/
+
+Last log lines:
+$(notify_log_tail 20)")"
         trap - EXIT
         exit 1
     fi
@@ -241,6 +267,7 @@ for project_path in "$BACKUP_ROOT"/*; do
     else
         log_warn "   ⚠ Sync failed for project $PROJECT_NAME. Local cleanup SKIPPED."
         UPLOAD_ERRORS=$((UPLOAD_ERRORS + 1))
+        FAILED_PROJECTS+=("$PROJECT_NAME")
     fi
 
     log_verbose "   Project time: $(elapsed $STEP_START)s"
@@ -275,6 +302,23 @@ log_info "✅ Synchronization completed in ${TOTAL_DURATION}s"
     echo "════════════════════════════════════════════════"
     echo ""
 } >> "$LOG_FILE"
+
+# Error notification (single aggregated e-mail per run)
+if [ "$UPLOAD_ERRORS" -gt 0 ]; then
+    send_error_email "$(notify_host): backup sync $STATUS ($UPLOAD_ERRORS project(s) failed)" \
+        "$(notify_body "Status              : $STATUS
+Duration            : ${TOTAL_DURATION}s
+Cloud destination   : ${RCLONE_REMOTE}/${DRIVE_DESTINATION}/
+Projects with errors: $UPLOAD_ERRORS
+Failed projects     : ${FAILED_PROJECTS[*]}
+Files removed (local): $TOTAL_DELETED
+Delete errors       : $DELETE_ERRORS
+
+Local cleanup was SKIPPED for the failed projects, so no data was lost locally.
+
+Last log lines:
+$(notify_log_tail 30)")"
+fi
 
 # Remove error trap for clean exit
 trap - EXIT
