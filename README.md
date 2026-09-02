@@ -77,13 +77,13 @@ diff <(git show HEAD:backup.env) backup.env  # check for NEW variables to fill i
 
 ## Scripts
 
-| Script | Description |
-|---|---|
-| `uploadBackup.sh` | Uploads all project folders in `BACKUP_ROOT` to the cloud |
-| `cleanRemoteBackups.sh` | Deletes old backups from the cloud |
-| `restoreBackup.sh` | Interactive download of a backup from the cloud |
-| `notify.sh` | Shared helper that sends error alerts by e-mail (sourced by the scripts above) |
-| `backup.env` | Shared configuration file |
+| Script                    | Description                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| `uploadBackup.sh`       | Uploads all project folders in`BACKUP_ROOT` to the cloud                     |
+| `cleanRemoteBackups.sh` | Deletes old backups from the cloud                                             |
+| `restoreBackup.sh`      | Interactive download of a backup from the cloud                                |
+| `notify.sh`             | Shared helper that sends error alerts by e-mail (sourced by the scripts above) |
+| `backup.env`            | Shared configuration file                                                      |
 
 ---
 
@@ -109,58 +109,54 @@ the log file.
 
 **Required**
 
-| Variable | Description |
-|---|---|
-| `BACKUP_ROOT` | Local directory containing project folders (e.g. `/opt/backups`) |
-| `RCLONE_REMOTE` | rclone remote name (e.g. `douglas:`) |
+| Variable          | Description                                                       |
+| ----------------- | ----------------------------------------------------------------- |
+| `BACKUP_ROOT`   | Local directory containing project folders (e.g.`/opt/backups`) |
+| `RCLONE_REMOTE` | rclone remote name (e.g.`douglas:`)                             |
 
 **Local cleanup** — what happens to the local files *after* a successful upload
 
-| Variable | Default | Description |
-|---|---|---|
-| `LOCAL_CLEANUP` | `retention` | `retention` = delete only files older than `RETENTION_DAYS`; `always` = delete every uploaded file; `never` = keep everything locally |
-| `RETENTION_DAYS` | `1` | Days to keep local backups. Only used when `LOCAL_CLEANUP="retention"` |
+| Variable           | Default       | Description                                                                                                                                   |
+| ------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LOCAL_CLEANUP`  | `retention` | `retention` = delete only files older than `RETENTION_DAYS`; `always` = delete every uploaded file; `never` = keep everything locally |
+| `RETENTION_DAYS` | `1`         | Days to keep local backups. Only used when`LOCAL_CLEANUP="retention"`                                                                       |
 
 Nothing is ever deleted when the upload fails, and `-n` (dry-run) deletes nothing at all.
 `DELETE_AFTER_UPLOAD="true"` is still accepted as a deprecated alias for `LOCAL_CLEANUP="always"`.
 
 **Remote retention** — applied by `cleanRemoteBackups.sh`, fully independent from the local cleanup
 
-| Variable | Default | Description |
-|---|---|---|
-| `REMOTE_RETENTION_DAYS` | `15` | Days to keep backups in the cloud |
+| Variable                  | Default | Description                       |
+| ------------------------- | ------- | --------------------------------- |
+| `REMOTE_RETENTION_DAYS` | `15`  | Days to keep backups in the cloud |
 
 **Cloud**
 
-| Variable | Default | Description |
-|---|---|---|
-| `DRIVE_DESTINATION` | `Backups` | Destination folder in the cloud |
-| `REMOTE_CLEANUP_SAFETY_DAYS` | `2` | Block remote cleanup if no recent backup is found within this many days |
+| Variable                       | Default     | Description                                                             |
+| ------------------------------ | ----------- | ----------------------------------------------------------------------- |
+| `DRIVE_DESTINATION`          | `Backups` | Destination folder in the cloud                                         |
+| `REMOTE_CLEANUP_SAFETY_DAYS` | `2`       | Block remote cleanup if no recent backup is found within this many days |
 
 **Upload Behavior**
 
-| Variable | Default | Description |
-|---|---|---|
-| `IGNORED_FOLDERS` | `scripts config bin logs lost+found` | Folders inside `BACKUP_ROOT` to skip |
-| `SKIP_DOTFILES` | `false` | Exclude hidden files/folders (`.env`, `.git/`, etc.) from upload |
-| `UPLOAD_ROOT_FILES` | `true` | Also upload files sitting loose in `BACKUP_ROOT`, outside any project folder |
+| Variable              | Default                                | Description                                                                   |
+| --------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `IGNORED_FOLDERS`   | `scripts config bin logs lost+found` | Folders inside`BACKUP_ROOT` to skip                                         |
+| `SKIP_DOTFILES`     | `false`                              | Exclude hidden files/folders (`.env`, `.git/`, etc.) from upload          |
+| `UPLOAD_ROOT_FILES` | `true`                               | Also upload files sitting loose in`BACKUP_ROOT`, outside any project folder |
 
 **Notifications** (optional — requires `curl`)
 
-| Variable | Default | Description |
-|---|---|---|
-| `NOTIFY_EMAIL_TO` | *(empty)* | Address(es) that receive error alerts — one or more, separated by comma and/or space. **Empty disables notifications entirely** |
-| `NOTIFY_EMAIL_FROM` | first `NOTIFY_EMAIL_TO` | Sender address |
-| `NOTIFY_SUBJECT_PREFIX` | `[RCSS]` | Prefix prepended to the e-mail subject |
-| `SMTP_HOST` | *(empty)* | SMTP server (e.g. `smtp.gmail.com`) |
-| `SMTP_PORT` | `587` | SMTP port: `587` = STARTTLS, `465` = implicit TLS (handled automatically) |
-| `SMTP_USER` | *(empty)* | SMTP user; leave empty for relays without authentication |
-| `SMTP_PASSWORD` | *(empty)* | SMTP password (for Gmail, use an **app password**, without spaces) |
+| Variable                  | Default                  | Description                                                                                                                           |
+| ------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `NOTIFY_EMAIL_TO`       | *(empty)*              | Address(es) that receive error alerts — one or more, separated by comma and/or space.**Empty disables notifications entirely** |
+| `NOTIFY_EMAIL_FROM`     | first`NOTIFY_EMAIL_TO` | Sender address                                                                                                                        |
+| `NOTIFY_SUBJECT_PREFIX` | `[RCSS]`               | Prefix prepended to the e-mail subject                                                                                                |
+| `SMTP_HOST`             | *(empty)*              | SMTP server (e.g.`smtp.gmail.com`)                                                                                                  |
+| `SMTP_PORT`             | `587`                  | SMTP port:`587` = STARTTLS, `465` = implicit TLS (handled automatically)                                                          |
+| `SMTP_USER`             | *(empty)*              | SMTP user; leave empty for relays without authentication                                                                              |
+| `SMTP_PASSWORD`         | *(empty)*              | SMTP password (for Gmail, use an**app password**, without spaces)                                                               |
 
-> ⚠️ **Security:** `backup.env` is tracked by git. Never commit real credentials —
-> fill these values only in the local copy on each server, and keep the placeholders
-> empty in any commit. Cloud credentials are never stored here: they stay in
-> `~/.config/rclone/rclone.conf`.
 
 ---
 
@@ -178,18 +174,8 @@ SMTP_USER="you@gmail.com"
 SMTP_PASSWORD="your-app-password"
 ```
 
-Alerts are sent when:
-
-| Situation | Script |
-|---|---|
-| One or more projects failed to sync (single summary e-mail per run, listing the failed projects) | `uploadBackup.sh` |
-| **Nothing was found to upload** — no project folder and no loose file (unmounted disk, wrong `BACKUP_ROOT`, backups that stopped being generated) | `uploadBackup.sh` |
-| Single file upload (`-a`) failed | `uploadBackup.sh` |
-| Unexpected termination (rclone missing, `BACKUP_ROOT` not found, etc.) | both |
-| Safety abort — no recent backup found in the cloud | `cleanRemoteBackups.sh` |
-| `rclone delete` failed during cloud cleanup | `cleanRemoteBackups.sh` |
-
 Every alert includes the hostname, the script name, the timestamp and the last lines of the log,
+
 so it is clear which server raised it. Alerts raised during a dry-run (`-n`) are marked with
 `[DRY-RUN]` in the subject, so a test is never mistaken for a real incident.
 
@@ -202,29 +188,29 @@ nothing is uploaded and nothing is deleted:
 
 `uploadBackup.sh` reports the run status in the log summary and in its exit code:
 
-| Status | Exit | Meaning |
-|---|---|---|
-| `SUCCESS` | `0` | Everything was uploaded |
+| Status      | Exit  | Meaning                                                       |
+| ----------- | ----- | ------------------------------------------------------------- |
+| `SUCCESS` | `0` | Everything was uploaded                                       |
 | `PARTIAL` | `1` | At least one project failed; local cleanup was skipped for it |
-| `EMPTY` | `1` | Nothing was found to upload — never reported as success |
+| `EMPTY`   | `1` | Nothing was found to upload — never reported as success      |
 
 ---
 
 ## `uploadBackup.sh` Flags
 
-| Flag | Description |
-|---|---|
-| `-p` | Show progress bar |
-| `-v` | Verbose output |
-| `-n` | Dry-run: nothing is uploaded and **nothing is deleted locally** — safe way to test a new configuration |
-| `-D` | Force `LOCAL_CLEANUP="always"`: delete every uploaded file locally |
-| `-k` | Force `LOCAL_CLEANUP="never"`: keep every local file |
-| `-s` | Enable `SKIP_DOTFILES` (default: off) |
-| `-o <path>` | Override `BACKUP_ROOT` |
-| `-r <remote>` | Override `RCLONE_REMOTE` |
-| `-d <folder>` | Override `DRIVE_DESTINATION` |
-| `-i <folders>` | Extra folders to ignore (appended to `IGNORED_FOLDERS`) |
-| `-a <file>` | Upload a single file instead of scanning project folders |
+| Flag             | Description                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| `-p`           | Show progress bar                                                                                            |
+| `-v`           | Verbose output                                                                                               |
+| `-n`           | Dry-run: nothing is uploaded and**nothing is deleted locally** — safe way to test a new configuration |
+| `-D`           | Force`LOCAL_CLEANUP="always"`: delete every uploaded file locally                                          |
+| `-k`           | Force`LOCAL_CLEANUP="never"`: keep every local file                                                        |
+| `-s`           | Enable`SKIP_DOTFILES` (default: off)                                                                       |
+| `-o <path>`    | Override`BACKUP_ROOT`                                                                                      |
+| `-r <remote>`  | Override`RCLONE_REMOTE`                                                                                    |
+| `-d <folder>`  | Override`DRIVE_DESTINATION`                                                                                |
+| `-i <folders>` | Extra folders to ignore (appended to`IGNORED_FOLDERS`)                                                     |
+| `-a <file>`    | Upload a single file instead of scanning project folders                                                     |
 
 ---
 
@@ -264,7 +250,6 @@ nothing is uploaded and nothing is deleted:
 # Check logs
 tail -f sync.log
 ```
-
 
 Built on top of [rclone](https://rclone.org) — the open source cloud storage manager.
 
