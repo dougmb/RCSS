@@ -75,13 +75,20 @@ send_error_email() {
     [ "${DRY_RUN:-0}" = "1" ] && prefix="$prefix [DRY-RUN]"
     local port="${SMTP_PORT:-587}"
 
+    # Port 465 speaks TLS from the first byte (smtps); 587 upgrades via STARTTLS
+    local scheme="smtp"
+    [ "$port" = "465" ] && scheme="smtps"
+
     local message
     message=$(printf 'From: %s\nTo: %s\nSubject: %s %s\nDate: %s\n\n%s\n' \
         "$from" "$to_header" "$prefix" "$subject" "$(date -R)" "$body")
 
+    # Timeouts matter: an unreachable SMTP server must never hang the backup run
     local curl_flags=(
         --silent --show-error
-        --url "smtp://${SMTP_HOST}:${port}"
+        --connect-timeout "${SMTP_CONNECT_TIMEOUT:-15}"
+        --max-time "${SMTP_MAX_TIME:-60}"
+        --url "${scheme}://${SMTP_HOST}:${port}"
         --ssl-reqd
         --mail-from "$from"
         --upload-file -
@@ -92,9 +99,20 @@ send_error_email() {
     done
     [ -n "${SMTP_USER:-}" ] && curl_flags+=(--user "${SMTP_USER}:${SMTP_PASSWORD:-}")
 
-    if printf '%s' "$message" | curl "${curl_flags[@]}" >/dev/null 2>&1; then
+    # Keep curl's own error message: without it a failure is impossible to diagnose
+    local curl_error curl_status=0
+    curl_error=$(printf '%s' "$message" | curl "${curl_flags[@]}" 2>&1 >/dev/null) || curl_status=$?
+
+    if [ "$curl_status" -eq 0 ]; then
         log_info "E-mail notification sent to $to_header"
-    else
-        log_warn "Failed to send e-mail notification to $to_header (check SMTP_* settings in backup.env)."
+        return 0
     fi
+
+    log_warn "Failed to send e-mail notification to $to_header — curl exit $curl_status: ${curl_error:-no error output}"
+    case "$curl_status" in
+        6)  log_warn "   → could not resolve '$SMTP_HOST' (DNS). Check /etc/resolv.conf on this server." ;;
+        7)  log_warn "   → could not connect to ${SMTP_HOST}:${port}. Port likely blocked by a firewall." ;;
+        28) log_warn "   → timed out talking to ${SMTP_HOST}:${port}. Outbound SMTP is probably filtered." ;;
+        67) log_warn "   → authentication rejected. For Gmail use an app password, with no spaces." ;;
+    esac
 }

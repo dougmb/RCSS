@@ -153,7 +153,7 @@ Nothing is ever deleted when the upload fails, and `-n` (dry-run) deletes nothin
 | `NOTIFY_EMAIL_FROM` | first `NOTIFY_EMAIL_TO` | Sender address |
 | `NOTIFY_SUBJECT_PREFIX` | `[RCSS]` | Prefix prepended to the e-mail subject |
 | `SMTP_HOST` | *(empty)* | SMTP server (e.g. `smtp.gmail.com`) |
-| `SMTP_PORT` | `587` | SMTP port (`587` = STARTTLS) |
+| `SMTP_PORT` | `587` | SMTP port: `587` = STARTTLS, `465` = implicit TLS (handled automatically) |
 | `SMTP_USER` | *(empty)* | SMTP user; leave empty for relays without authentication |
 | `SMTP_PASSWORD` | *(empty)* | SMTP password (for Gmail, use an **app password**, without spaces) |
 
